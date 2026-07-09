@@ -1,0 +1,18 @@
+{
+  "mode": "heuristic",
+  "degraded": true,
+  "degraded_reason": "TypeError: \"Could not resolve authentication method. Expected one of api_key, auth_token, or credentials to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted\"",
+  "claim_count": 3,
+  "generated_criticism_count": 1,
+  "filtered_criticism_count": 0,
+  "grounded_criticism_count": 1,
+  "off_scope_filtered_count": 0,
+  "quote_span_count": 0,
+  "quote_span_verified_count": 0,
+  "overall_recommendation": 3,
+  "hallucination_guard_status": "PASS",
+  "verdict": "PASS",
+  "supported_claim_count": 2,
+  "needs_experiment_claim_count": 1,
+  "weak_claim_count": 0
+}

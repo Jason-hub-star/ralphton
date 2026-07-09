@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
-"""Generate a deterministic evidence-linked ICML-style review.
+"""Generate an evidence-linked ICML-style review.
 
-This is the Track 2-facing MVP: paper in, transparent review out. The older
-review audit scripts remain the internal validation harness.
+Two-layer design:
+- LLM brain (default on the CLI): claim/evidence extraction, criticism
+  drafting, and off-scope self-review via scripts/llm_client.py.
+- Deterministic guards (always on): schema shape, evidence-ref existence,
+  verbatim quote verification against the paper, off-scope token-overlap
+  partition, rubric-anchored scoring, and rendering.
+
+The deterministic heuristic path is preserved as `--offline` (and as the
+default when `run()` is called from the evaluation harnesses) so the
+regression fixtures stay reproducible without network access.
 """
 
 from __future__ import annotations
@@ -12,11 +20,12 @@ import json
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNS = ROOT / "runs"
+OFF_SCOPE_MIN_OVERLAP = 3
 STOPWORDS = {
     "a",
     "an",
@@ -62,6 +71,16 @@ LIMITATION_PHRASES = [
     "should improve",
 ]
 SPECULATIVE_PHRASES = ["should", "would", "could", "will", "may", "might", "propose", "expected"]
+ETHICAL_KEYWORDS = [
+    "human subject",
+    "personal data",
+    "personally identifiable",
+    "patient",
+    "medical record",
+    "surveillance",
+    "deanonym",
+    "crowdworker",
+]
 
 
 def tokens(text: str) -> set[str]:
@@ -72,18 +91,32 @@ def tokens(text: str) -> set[str]:
     }
 
 
+def normalize_ws(text: str) -> str:
+    return " ".join(text.split())
+
+
+def quote_in_paper(quote: str, paper: str) -> bool:
+    return bool(quote.strip()) and normalize_ws(quote) in normalize_ws(paper)
+
+
 def section(text: str, heading: str) -> str:
-    lines = text.splitlines()
+    """Return the body of a heading, tolerating deeper sub-headings."""
     wanted = heading.lower()
     captured: list[str] = []
     in_section = False
-    for line in lines:
+    base_level = 0
+    for line in text.splitlines():
         stripped = line.strip()
         if stripped.startswith("#"):
+            level = len(stripped) - len(stripped.lstrip("#"))
             name = stripped.lstrip("#").strip().lower()
-            if in_section and name != wanted:
-                break
-            in_section = name == wanted
+            if in_section:
+                if level <= base_level:
+                    break
+                continue
+            if name == wanted:
+                in_section = True
+                base_level = level
             continue
         if in_section:
             captured.append(line)
@@ -113,6 +146,11 @@ def paper_title(text: str) -> str:
         if line.startswith("# "):
             return line.lstrip("#").strip()
     return "Untitled paper"
+
+
+# ---------------------------------------------------------------------------
+# Deterministic (offline) extraction path — regression baseline.
+# ---------------------------------------------------------------------------
 
 
 def build_claims(text: str) -> list[dict[str, Any]]:
@@ -146,7 +184,7 @@ def evidence_scores(text: str, evidence: list[dict[str, str]]) -> list[tuple[int
     return sorted(scored, key=lambda pair: pair[0], reverse=True)
 
 
-def evidence_refs_for_claim(claim: str, evidence: list[dict[str, str]], limit: int = 2) -> list[str]:
+def evidence_refs_for_claim(claim: str, evidence: list[dict[str, str]]) -> list[str]:
     scored = [item for _, item in evidence_scores(claim, evidence)]
     non_limit = [item for item in scored if not has_limitation(item["text"])]
     limit_items = [item for item in scored if has_limitation(item["text"])]
@@ -168,6 +206,11 @@ def is_speculative(text: str) -> bool:
     return any(f" {phrase} " in f" {lower} " for phrase in SPECULATIVE_PHRASES)
 
 
+def has_limitation(text: str) -> bool:
+    lower = text.lower()
+    return any(phrase in lower for phrase in LIMITATION_PHRASES)
+
+
 def enrich_claims(claims: list[dict[str, Any]], evidence: list[dict[str, str]]) -> list[dict[str, Any]]:
     evidence_lookup = evidence_by_id(evidence)
     enriched = []
@@ -185,22 +228,6 @@ def enrich_claims(claims: list[dict[str, Any]], evidence: list[dict[str, str]]) 
             rationale = "No direct evidence sentence was found for this claim."
         enriched.append({**claim, "evidence_refs": refs, "evidence_status": status, "rationale": rationale})
     return enriched
-
-
-def best_claim_id(text: str, claims: list[dict[str, Any]]) -> str:
-    text_tokens = tokens(text)
-    if not text_tokens:
-        return claims[0]["id"]
-    scored = []
-    for claim in claims:
-        scored.append((len(text_tokens & tokens(claim["text"])), claim["id"]))
-    score, claim_id = max(scored, key=lambda pair: pair[0])
-    return claim_id if score else claims[0]["id"]
-
-
-def has_limitation(text: str) -> bool:
-    lower = text.lower()
-    return any(phrase in lower for phrase in LIMITATION_PHRASES)
 
 
 def limitation_sources(claims: list[dict[str, Any]], evidence: list[dict[str, str]]) -> list[dict[str, str]]:
@@ -261,19 +288,323 @@ def generate_criticisms(claims: list[dict[str, Any]], evidence: list[dict[str, s
     ]
 
 
-def filter_off_scope_criticisms() -> list[dict[str, str]]:
-    return [
-        {
-            "id": "F1",
-            "text": "The authors should build a mobile dashboard before evaluation.",
-            "filter_reason": "off_scope: product packaging is not evidence for the paper claim.",
+# ---------------------------------------------------------------------------
+# Off-scope filter (deterministic, applies to both paths).
+# ---------------------------------------------------------------------------
+
+
+def partition_off_scope(
+    criticisms: list[dict[str, Any]],
+    claims: list[dict[str, Any]],
+    evidence: list[dict[str, str]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    paper_tokens: set[str] = set()
+    for item in claims:
+        paper_tokens |= tokens(item["text"])
+    for item in evidence:
+        paper_tokens |= tokens(item["text"])
+
+    kept: list[dict[str, Any]] = []
+    filtered: list[dict[str, Any]] = []
+    for item in criticisms:
+        if item.get("layer") == "off_scope":
+            filtered.append({**item, "filter_reason": item.get("filter_reason", "off_scope: flagged during self-review")})
+            continue
+        overlap = len(tokens(item["text"]) & paper_tokens)
+        if overlap < OFF_SCOPE_MIN_OVERLAP:
+            filtered.append(
+                {
+                    **item,
+                    "filter_reason": (
+                        f"off_scope: only {overlap} content tokens overlap the paper's claims/evidence "
+                        f"(threshold {OFF_SCOPE_MIN_OVERLAP})"
+                    ),
+                }
+            )
+        else:
+            kept.append(item)
+    return kept, filtered
+
+
+# ---------------------------------------------------------------------------
+# LLM path: extraction -> criticisms -> self-review, each behind guards.
+# ---------------------------------------------------------------------------
+
+
+class GuardError(Exception):
+    """A stage output failed a deterministic guard."""
+
+
+SYSTEM_TEMPLATE = """You are Review See-Through, an ICML-style review agent.
+Ground every statement in the paper text below. Never invent quotes,
+numbers, citations, or experiments that are not in the paper. Quotes must
+be copied verbatim from the paper.
+
+<paper>
+{paper}
+</paper>"""
+
+STAGE1_INSTRUCTIONS = """Extract the paper's core structure.
+- claims: 2 to 7 central claims the authors make (paraphrase is fine).
+  For each claim: status is "supported" when the paper contains direct
+  evidence for it, "needs_experiment" when the claim is prospective or an
+  explicit limitation blocks it, "weak" when no direct evidence exists.
+  evidence_indexes are 0-based indexes into your evidence array.
+- evidence: verbatim sentences from the paper that carry results, numbers,
+  comparisons, or explicit limitations. Copy them exactly.
+- limitations: verbatim sentences stating limitations or missing work.
+Return JSON only."""
+
+STAGE1_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["claims", "evidence", "limitations"],
+    "properties": {
+        "claims": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["text", "status", "evidence_indexes", "rationale"],
+                "properties": {
+                    "text": {"type": "string"},
+                    "status": {"type": "string", "enum": ["supported", "needs_experiment", "weak"]},
+                    "evidence_indexes": {"type": "array", "items": {"type": "integer"}},
+                    "rationale": {"type": "string"},
+                },
+            },
         },
-        {
-            "id": "F2",
-            "text": "The authors should compare against image classification benchmarks.",
-            "filter_reason": "off_scope: benchmark family is unrelated to the submitted claims.",
+        "evidence": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["quote"],
+                "properties": {"quote": {"type": "string"}},
+            },
         },
+        "limitations": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["quote"],
+                "properties": {"quote": {"type": "string"}},
+            },
+        },
+    },
+}
+
+STAGE2_INSTRUCTIONS_TEMPLATE = """Here are the extracted claims and evidence (JSON):
+{layers}
+
+Write the review body.
+- summary: 2-4 sentences describing what the paper does and finds.
+- criticisms: 1 to 4 weaknesses. Each must reference one target_claim id,
+  cite evidence_refs (E-ids), include a verbatim quote from the paper that
+  the criticism rests on, name the hidden_assumption, and set layer:
+  "grounded" (direct contradiction/gap in the paper), "needs_experiment"
+  (resolvable by one bounded experiment), "weak" (soft concern), or
+  "off_scope" (would require work outside the paper's scope — these are
+  filtered out, so use it for criticisms you considered and rejected).
+- prior_works: 1-3 sentences on how the paper relates to prior work,
+  based only on what the paper itself cites or states. If the paper cites
+  nothing, say so.
+- originality / significance / clarity: one sentence each.
+- questions: 1-3 numbered-style questions for the authors, each tied to a
+  specific claim or missing piece of evidence.
+Return JSON only."""
+
+STAGE2_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["summary", "criticisms", "prior_works", "originality", "significance", "clarity", "questions"],
+    "properties": {
+        "summary": {"type": "string"},
+        "criticisms": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["target_claim", "layer", "text", "evidence_refs", "quote", "hidden_assumption"],
+                "properties": {
+                    "target_claim": {"type": "string"},
+                    "layer": {"type": "string", "enum": ["grounded", "needs_experiment", "weak", "off_scope"]},
+                    "text": {"type": "string"},
+                    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+                    "quote": {"type": "string"},
+                    "hidden_assumption": {"type": "string"},
+                },
+            },
+        },
+        "prior_works": {"type": "string"},
+        "originality": {"type": "string"},
+        "significance": {"type": "string"},
+        "clarity": {"type": "string"},
+        "questions": {"type": "array", "items": {"type": "string"}},
+    },
+}
+
+STAGE3_INSTRUCTIONS_TEMPLATE = """Here is the draft criticism list (JSON):
+{criticisms}
+
+Self-review each criticism as a skeptical meta-reviewer. A criticism must
+be dropped (keep=false) when it asks for work outside the paper's scope,
+restates a limitation the authors already acknowledge without adding a
+check, or is not anchored in the quoted paper text.
+Return JSON only."""
+
+STAGE3_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["decisions"],
+    "properties": {
+        "decisions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["id", "keep", "reason"],
+                "properties": {
+                    "id": {"type": "string"},
+                    "keep": {"type": "boolean"},
+                    "reason": {"type": "string"},
+                },
+            },
+        }
+    },
+}
+
+
+def _run_stage(
+    call: Callable[[str], dict],
+    instructions: str,
+    guard: Callable[[dict], list[str]],
+) -> dict:
+    payload = call(instructions)
+    problems = guard(payload)
+    if not problems:
+        return payload
+    retry_instructions = (
+        instructions
+        + "\n\nYour previous answer failed these checks — fix them:\n- "
+        + "\n- ".join(problems)
+    )
+    payload = call(retry_instructions)
+    problems = guard(payload)
+    if problems:
+        raise GuardError("; ".join(problems))
+    return payload
+
+
+def guard_stage1(payload: dict, paper: str) -> list[str]:
+    problems = []
+    if not payload["claims"]:
+        problems.append("at least one claim is required")
+    evidence_count = len(payload["evidence"])
+    for index, item in enumerate(payload["evidence"]):
+        if not quote_in_paper(item["quote"], paper):
+            problems.append(f"evidence[{index}] quote is not verbatim from the paper")
+    for index, item in enumerate(payload["limitations"]):
+        if not quote_in_paper(item["quote"], paper):
+            problems.append(f"limitations[{index}] quote is not verbatim from the paper")
+    for index, claim in enumerate(payload["claims"]):
+        if any(ref < 0 or ref >= evidence_count for ref in claim["evidence_indexes"]):
+            problems.append(f"claims[{index}] has an evidence_index out of range")
+        if claim["status"] == "supported" and not claim["evidence_indexes"]:
+            problems.append(f"claims[{index}] is 'supported' but cites no evidence")
+    return problems
+
+
+def guard_stage2(payload: dict, paper: str, claim_ids: set[str], evidence_ids: set[str]) -> list[str]:
+    problems = []
+    if not payload["criticisms"]:
+        problems.append("at least one criticism is required")
+    for index, item in enumerate(payload["criticisms"]):
+        if item["target_claim"] not in claim_ids:
+            problems.append(f"criticisms[{index}] targets unknown claim {item['target_claim']}")
+        unknown = [ref for ref in item["evidence_refs"] if ref not in evidence_ids]
+        if unknown:
+            problems.append(f"criticisms[{index}] cites unknown evidence {unknown}")
+        if not quote_in_paper(item["quote"], paper):
+            problems.append(f"criticisms[{index}] quote is not verbatim from the paper")
+    return problems
+
+
+def llm_pipeline(paper: str) -> dict[str, Any]:
+    from llm_client import complete_json
+
+    system = SYSTEM_TEMPLATE.format(paper=paper)
+
+    def call(schema: dict) -> Callable[[str], dict]:
+        return lambda instructions: complete_json(system, instructions, schema)
+
+    stage1 = _run_stage(call(STAGE1_SCHEMA), STAGE1_INSTRUCTIONS, lambda p: guard_stage1(p, paper))
+
+    evidence = [
+        {"id": f"E{index}", "text": item["quote"]}
+        for index, item in enumerate(stage1["evidence"], start=1)
     ]
+    claims = []
+    for index, claim in enumerate(stage1["claims"], start=1):
+        refs = [f"E{ref + 1}" for ref in claim["evidence_indexes"]]
+        claims.append(
+            {
+                "id": f"C{index}",
+                "text": claim["text"],
+                "evidence_refs": refs,
+                "evidence_status": claim["status"],
+                "rationale": claim["rationale"],
+            }
+        )
+    evidence_texts = {normalize_ws(item["text"]): item["id"] for item in evidence}
+    limitations = [
+        {"source_id": evidence_texts.get(normalize_ws(item["quote"]), "PAPER"), "text": item["quote"]}
+        for item in stage1["limitations"]
+    ]
+
+    layers_json = json.dumps({"claims": claims, "evidence": evidence}, indent=2)
+    claim_ids = {claim["id"] for claim in claims}
+    evidence_ids = {item["id"] for item in evidence}
+    stage2 = _run_stage(
+        call(STAGE2_SCHEMA),
+        STAGE2_INSTRUCTIONS_TEMPLATE.format(layers=layers_json),
+        lambda p: guard_stage2(p, paper, claim_ids, evidence_ids),
+    )
+
+    criticisms = [
+        {"id": f"G{index}", **item}
+        for index, item in enumerate(stage2["criticisms"], start=1)
+    ]
+
+    stage3 = _run_stage(
+        call(STAGE3_SCHEMA),
+        STAGE3_INSTRUCTIONS_TEMPLATE.format(criticisms=json.dumps(criticisms, indent=2)),
+        lambda p: [],
+    )
+    drop_reasons = {item["id"]: item["reason"] for item in stage3["decisions"] if not item["keep"]}
+    for item in criticisms:
+        if item["id"] in drop_reasons:
+            item["layer"] = "off_scope"
+            item["filter_reason"] = f"off_scope: {drop_reasons[item['id']]}"
+
+    return {
+        "claims": claims,
+        "evidence": evidence,
+        "limitations": limitations,
+        "criticisms": criticisms,
+        "summary": stage2["summary"],
+        "prior_works": stage2["prior_works"],
+        "originality": stage2["originality"],
+        "significance": stage2["significance"],
+        "clarity": stage2["clarity"],
+        "questions": stage2["questions"],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Next-experiment selection (deterministic, both paths).
+# ---------------------------------------------------------------------------
 
 
 def infer_metric(claim_text: str) -> str:
@@ -334,95 +665,191 @@ def selected_experiment(criticisms: list[dict[str, Any]], claims: list[dict[str,
     }
 
 
-def scorecard(claims: list[dict[str, Any]], criticisms: list[dict[str, Any]], filtered: list[dict[str, Any]]) -> dict[str, Any]:
-    grounded = sum(1 for item in criticisms if item["layer"] in {"grounded", "needs_experiment"})
-    guard_ok = all(item["target_claim"] and item["evidence_refs"] for item in criticisms)
-    return {
-        "claim_count": len(claims),
-        "generated_criticism_count": len(criticisms),
-        "filtered_criticism_count": len(filtered),
-        "grounded_criticism_count": grounded,
-        "off_scope_filtered_count": len(filtered),
-        "hallucination_guard_status": "PASS" if guard_ok else "FAIL",
-        "verdict": "PASS" if guard_ok and criticisms else "FAIL",
-        "supported_claim_count": sum(1 for claim in claims if claim["evidence_status"] == "supported"),
-        "needs_experiment_claim_count": sum(1 for claim in claims if claim["evidence_status"] == "needs_experiment"),
-        "weak_claim_count": sum(1 for claim in claims if claim["evidence_status"] == "weak"),
-    }
+# ---------------------------------------------------------------------------
+# Rubric-anchored scoring + ICML-form rendering.
+# ---------------------------------------------------------------------------
+
+
+def overall_recommendation(claims: list[dict[str, Any]], kept: list[dict[str, Any]]) -> tuple[int, str]:
+    total = len(claims)
+    supported = sum(1 for claim in claims if claim["evidence_status"] == "supported")
+    needs = sum(1 for claim in claims if claim["evidence_status"] == "needs_experiment")
+    weak = sum(1 for claim in claims if claim["evidence_status"] == "weak")
+    ratio = supported / total if total else 0.0
+
+    if ratio == 1.0 and not kept:
+        return 5, f"Strong accept anchor: all {total} claims are directly supported and no grounded weakness survived review."
+    if ratio >= 0.75 and weak == 0:
+        return 4, (
+            f"Accept anchor: {supported}/{total} claims are directly supported; the remaining "
+            f"{needs} claim(s) are gated by one bounded, well-specified missing experiment."
+        )
+    if ratio >= 0.5:
+        return 3, (
+            f"Weak accept anchor: {supported}/{total} claims are supported, but {needs + weak} claim(s) "
+            "still lack a direct run or direct evidence, so acceptance leans on the proposed next experiment."
+        )
+    if supported >= 1:
+        return 2, (
+            f"Weak reject anchor: only {supported}/{total} claims are supported; "
+            f"{weak} claim(s) have no direct evidence in the paper."
+        )
+    return 1, f"Reject anchor: none of the {total} extracted claims are supported by direct evidence in the paper."
+
+
+def ethical_issues_line(paper: str) -> str:
+    lower = paper.lower()
+    hits = sorted({keyword for keyword in ETHICAL_KEYWORDS if keyword in lower})
+    if hits:
+        return f"Potential areas to double-check based on paper text: {', '.join(hits)}. A human ethics reviewer should confirm."
+    return "No ethical concerns were identified from the paper text."
+
+
+def prior_works_fallback(paper: str) -> str:
+    if section(paper, "References") or section(paper, "Related Work"):
+        return (
+            "The paper includes a references/related-work section; this review did not "
+            "independently verify those citations against the literature."
+        )
+    return (
+        "The paper does not include a references or related-work section, so novelty "
+        "claims cannot be positioned against prior work from the paper text alone."
+    )
+
+
+STATUS_LABELS = {
+    "supported": "Supported",
+    "needs_experiment": "Partially supported (missing one bounded experiment)",
+    "weak": "Unsupported (no direct evidence found)",
+}
 
 
 def render_review(
     title: str,
-    abstract: str,
+    paper: str,
     claims: list[dict[str, Any]],
     evidence: list[dict[str, str]],
-    criticisms: list[dict[str, Any]],
+    kept: list[dict[str, Any]],
     experiment: dict[str, str],
+    extras: dict[str, Any],
 ) -> str:
     evidence_lookup = evidence_by_id(evidence)
-    strengths = [claim for claim in claims if claim["evidence_status"] == "supported"][:2] or claims[:1]
-    supported_count = sum(1 for claim in claims if claim["evidence_status"] == "supported")
-    needs_count = sum(1 for claim in claims if claim["evidence_status"] == "needs_experiment")
-    rating = "5: Marginally below acceptance threshold"
-    if needs_count:
-        rating = "5: Borderline, pending the missing experiment"
-    elif supported_count == len(claims):
-        rating = "6: Weak accept"
-    weakness_lines = [
-        f"- {item['id']} targets {item['target_claim']} with evidence {', '.join(item['evidence_refs'])}: {item['text']}"
-        for item in criticisms
-    ]
-    question_lines = [
-        f"- For {experiment['target_claim']}, can the authors run `{experiment['verify']}` and report `{experiment['metric']}` against the stated keep/discard condition?"
-    ]
-    strength_lines = [
-        f"- {claim['id']}: {claim['text']} Evidence: {', '.join(claim['evidence_refs']) or 'claim text only'}"
-        for claim in strengths
-    ]
-    abstract_line = abstract or "The paper does not provide a separate abstract, so this review uses the title, claims, and evidence sections."
-    evidence_snapshot = [
-        f"- {claim['id']} status `{claim['evidence_status']}`: {claim['rationale']}"
-        for claim in claims
-    ]
-    selected_refs = next((item["evidence_refs"] for item in criticisms if item["id"] == experiment["from_criticism"]), [])
-    selected_evidence = evidence_text_for_refs(selected_refs, evidence) or "No direct evidence sentence was found."
+    recommendation, anchor = overall_recommendation(claims, kept)
+
+    claim_lines = []
+    for claim in claims:
+        refs = ", ".join(claim["evidence_refs"]) or "no evidence ref"
+        claim_lines.append(
+            f"- {claim['id']} — {STATUS_LABELS[claim['evidence_status']]} ({refs}): {claim['text']}"
+        )
+        for ref in claim["evidence_refs"]:
+            if ref in evidence_lookup:
+                claim_lines.append(f"  - {ref}: \"{evidence_lookup[ref]}\"")
+
+    weakness_lines = []
+    for item in kept:
+        weakness_lines.append(
+            f"- {item['id']} (targets {item['target_claim']}, evidence {', '.join(item['evidence_refs']) or 'none'}): {item['text']}"
+        )
+        if item.get("quote"):
+            weakness_lines.append(f"  - Anchored in the paper text: \"{item['quote']}\"")
+        weakness_lines.append(f"  - Hidden assumption: {item['hidden_assumption']}")
+    if not weakness_lines:
+        weakness_lines.append("- No grounded weakness survived the off-scope filter.")
+
+    question_lines = [f"{index}. {question}" for index, question in enumerate(extras.get("questions", []), start=1)]
+    next_index = len(question_lines) + 1
+    question_lines.append(
+        f"{next_index}. For {experiment['target_claim']}, can the authors run the smallest saved fixture "
+        f"that directly targets this claim and report {experiment['metric']}, judged against the stated "
+        "keep/discard condition below?"
+    )
+
+    summary_text = extras.get("summary") or (
+        f"The submission presents `{title}`. "
+        + (section(paper, "Abstract") or "The paper provides claims and evidence sections which this review analyzes.")
+    )
+
     return "\n".join(
         [
-            f"# Generated See-Through Review: {title}",
+            f"# ICML-Style Review: {title}",
             "",
             "## Summary",
-            f"The submission presents `{title}`. {abstract_line}",
+            summary_text,
             "",
-            "Claim-evidence read:",
-            *evidence_snapshot,
+            "## Claims and Evidence",
+            "Each central claim, its substantiation status, and the verbatim evidence it rests on:",
+            *claim_lines,
             "",
-            "## Strengths",
-            *strength_lines,
-            "",
-            "## Weaknesses",
+            "Weaknesses (each linked to a claim and evidence layer):",
             *weakness_lines,
+            "",
+            "## Relation to Prior Works",
+            extras.get("prior_works") or prior_works_fallback(paper),
+            "",
+            "## Other Aspects",
+            f"- Originality: {extras.get('originality') or 'The contribution is narrow but concrete; originality is hard to place without verified citations.'}",
+            f"- Significance: {extras.get('significance') or 'Significance rests on whether the central claims survive the one proposed missing experiment.'}",
+            f"- Clarity: {extras.get('clarity') or 'The paper is structured enough for claim extraction; a compact claim/evidence/limitation table would improve verifiability.'}",
             "",
             "## Questions for Authors",
             *question_lines,
-            f"- Please attach the artifact that resolves {experiment['from_criticism']}; the current evidence is: {selected_evidence}",
             "",
-            "## Soundness",
-            f"3: {supported_count}/{len(claims)} claims are directly supported by extracted evidence, and {needs_count} claim(s) still need a bounded missing-evidence check.",
+            "Proposed next experiment (keep/discard contract):",
+            f"- Hypothesis: {experiment['hypothesis']}",
+            f"- Metric: {experiment['metric']}",
+            f"- Keep when: {experiment['keep_condition']}",
+            f"- Discard when: {experiment['discard_condition']}",
             "",
-            "## Presentation",
-            "3: The paper is readable enough for claim extraction. A compact claim/evidence/limitation table would make the review easier to verify.",
+            "## Ethical Issues",
+            ethical_issues_line(paper),
             "",
-            "## Contribution",
-            "3: The contribution is potentially useful because the claims are concrete and can feed the next Ralph Loop, but the central missing experiment still gates confidence.",
-            "",
-            "## Rating",
-            rating,
-            "",
-            "## Confidence",
-            "3: Medium confidence. The review is deterministic, evidence-linked, and schema-checked; semantic novelty judgment is still outside this MVP.",
+            "## Overall Recommendation",
+            f"{recommendation}: {anchor}",
             "",
         ]
     )
+
+
+# ---------------------------------------------------------------------------
+# Scorecard + run orchestration.
+# ---------------------------------------------------------------------------
+
+
+def scorecard(
+    claims: list[dict[str, Any]],
+    kept: list[dict[str, Any]],
+    filtered: list[dict[str, Any]],
+    paper: str,
+    mode: str,
+    degraded: bool,
+    degraded_reason: str,
+) -> dict[str, Any]:
+    grounded = sum(1 for item in kept if item["layer"] in {"grounded", "needs_experiment"})
+    guard_ok = all(item["target_claim"] and item["evidence_refs"] for item in kept)
+    quotes = [item["quote"] for item in kept if item.get("quote")]
+    quotes_verified = sum(1 for quote in quotes if quote_in_paper(quote, paper))
+    if quotes and quotes_verified != len(quotes):
+        guard_ok = False
+    recommendation, _ = overall_recommendation(claims, kept)
+    return {
+        "mode": mode,
+        "degraded": degraded,
+        "degraded_reason": degraded_reason,
+        "claim_count": len(claims),
+        "generated_criticism_count": len(kept),
+        "filtered_criticism_count": len(filtered),
+        "grounded_criticism_count": grounded,
+        "off_scope_filtered_count": len(filtered),
+        "quote_span_count": len(quotes),
+        "quote_span_verified_count": quotes_verified,
+        "overall_recommendation": recommendation,
+        "hallucination_guard_status": "PASS" if guard_ok else "FAIL",
+        "verdict": "PASS" if guard_ok and kept else "FAIL",
+        "supported_claim_count": sum(1 for claim in claims if claim["evidence_status"] == "supported"),
+        "needs_experiment_claim_count": sum(1 for claim in claims if claim["evidence_status"] == "needs_experiment"),
+        "weak_claim_count": sum(1 for claim in claims if claim["evidence_status"] == "weak"),
+    }
 
 
 def yaml_scalar(value: str) -> str:
@@ -436,24 +863,55 @@ def render_experiment_yaml(experiment: dict[str, str]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def run(paper_path: Path, run_id: str) -> Path:
-    paper = paper_path.read_text(encoding="utf-8")
-    title = paper_title(paper)
-    abstract = section(paper, "Abstract")
+def heuristic_layers(paper: str) -> dict[str, Any]:
     raw_claims = build_claims(paper)
     evidence = build_evidence(paper)
     claims = enrich_claims(raw_claims, evidence)
-    criticisms = generate_criticisms(claims, evidence)
-    filtered = filter_off_scope_criticisms()
-    experiment = selected_experiment(criticisms, claims)
-    card = scorecard(claims, criticisms, filtered)
-
-    evidence_layers = {
-        "paper": {"path": str(paper_path), "title": title},
+    return {
         "claims": claims,
         "evidence": evidence,
         "limitations": limitation_sources(claims, evidence),
-        "generated_criticisms": criticisms,
+        "criticisms": generate_criticisms(claims, evidence),
+    }
+
+
+def run(paper_path: Path, run_id: str, use_llm: bool = False) -> Path:
+    paper = paper_path.read_text(encoding="utf-8")
+    title = paper_title(paper)
+
+    mode = "heuristic"
+    degraded = False
+    degraded_reason = ""
+    extras: dict[str, Any] = {}
+    layers: dict[str, Any]
+
+    if use_llm:
+        try:
+            layers = llm_pipeline(paper)
+            extras = layers
+            mode = "llm"
+        except Exception as error:  # GuardError, LLMUnavailable, network, parsing
+            layers = heuristic_layers(paper)
+            degraded = True
+            degraded_reason = f"{type(error).__name__}: {error}"
+    else:
+        layers = heuristic_layers(paper)
+
+    claims = layers["claims"]
+    evidence = layers["evidence"]
+    kept, filtered = partition_off_scope(layers["criticisms"], claims, evidence)
+    experiment_pool = kept or layers["criticisms"]
+    experiment = selected_experiment(experiment_pool, claims)
+    card = scorecard(claims, kept, filtered, paper, mode, degraded, degraded_reason)
+
+    evidence_layers = {
+        "paper": {"path": str(paper_path), "title": title},
+        "mode": mode,
+        "degraded": degraded,
+        "claims": claims,
+        "evidence": evidence,
+        "limitations": layers["limitations"],
+        "generated_criticisms": kept,
         "filtered_criticisms": filtered,
         "selected_next_experiment": experiment,
         "generated_at": datetime.now().isoformat(timespec="seconds"),
@@ -462,7 +920,7 @@ def run(paper_path: Path, run_id: str) -> Path:
     run_dir = RUNS / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / "generated_review.md").write_text(
-        render_review(title, abstract, claims, evidence, criticisms, experiment),
+        render_review(title, paper, claims, evidence, kept, experiment, extras),
         encoding="utf-8",
     )
     (run_dir / "evidence_layers.json").write_text(json.dumps(evidence_layers, indent=2) + "\n", encoding="utf-8")
@@ -475,10 +933,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--paper", type=Path, required=True)
     parser.add_argument("--run-id", default="review-001")
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Force the deterministic heuristic path (no LLM calls).",
+    )
     args = parser.parse_args()
 
-    run_dir = run(args.paper, args.run_id)
-    print(f"wrote {run_dir}")
+    run_dir = run(args.paper, args.run_id, use_llm=not args.offline)
+    card = json.loads((run_dir / "review_scorecard.json").read_text(encoding="utf-8"))
+    print(f"wrote {run_dir} mode={card['mode']} degraded={card['degraded']} verdict={card['verdict']}")
 
 
 if __name__ == "__main__":

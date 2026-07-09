@@ -3,15 +3,19 @@
 ## Current Truth
 
 - Project: Review See-Through for Ralphthon Track 2.
-- Current product direction: paper -> evidence-linked ICML-style review -> author next experiment.
-- Generated-review MVP runs: `review-001`, `review-002`.
-- Track 1-style extraction eval: `eval-real-001`.
+- Current product direction: paper -> evidence-linked ICML-form review -> author next experiment.
+- Generator is two-layer: LLM brain (extract -> criticize -> self-review, via `scripts/llm_client.py`) + deterministic guards (verbatim-quote check, evidence-ref check, off-scope partition, rubric-anchored 1-5 scoring). `--offline` forces the heuristic path; guard failure or missing credentials degrades to it with `"degraded": true`.
+- Hardcoded off-scope filler is gone; `filtered_criticisms` is a real per-paper partition.
+- Ralph loop harness: `PROMPT.md` + `TASKS.md` + `loop.sh` (runner-neutral, promise tags, deterministic gates as judge).
+- Latest regression runs after the rewrite: `eval-real-002` (PASS, all 1.0000), `eval-010` (baseline preserved).
+- Live LLM-path verification: pending API credentials.
+- Track 1-style extraction eval: `eval-real-002`.
 - Confirmed paper intake path: `docs/REAL-PAPER-INTAKE.md`.
-- Internal validation harness best run: `eval-007`.
 - Latest archived harness run: `eval-009 @ 20260709T165936`.
 - Current archive pointer: `runs/current/eval-009.txt`.
 - Evidence ledger: `runs/index.jsonl`.
 - Current run summary: `runs/run_summary.md`.
+- Repo: https://github.com/Jason-hub-star/ralphton
 
 ## Current Metrics
 
@@ -60,18 +64,18 @@ Track 1-style extraction eval, from `runs/eval-real-001/metrics.json`:
 
 ## Known Weaknesses
 
-- The generator is deterministic and heuristic-based; it is not yet a semantic LLM review agent.
-- `fixtures-real/` are local surrogate papers, not confirmed original Ralphthon Track 1 submissions.
-- The generator can identify obvious missing-experiment phrases, but it cannot judge novelty or methodological subtlety.
+- The LLM path has not run live yet (no API credentials in the dev environment); only the degrade path is verified end to end.
+- The offline heuristic path still degenerates on free-form papers (abstract becomes a single claim); free-form ingestion is an LLM-path feature.
+- `fixtures-real/` are local surrogate papers, not confirmed original Ralphthon Track 1 submissions, and all three share the same claim profile (2/3 supported), so they cannot demonstrate score differentiation by themselves.
 - Internal harness `target_claim_accuracy` remains `0.9333`, mostly from lexical claim matching.
+- The OpenAI provider branch in `scripts/llm_client.py` is untested; its default model name must be confirmed at the event.
 - Mutable `runs/<run-id>/` remains useful for latest local inspection, while archived eval runs are the evidence source of record.
 
 ## Next Loop
 
-- Replace template extraction with constrained claim/evidence extraction while preserving the same JSON schema.
-- Replace surrogate `fixtures-real/` papers with confirmed event papers when available.
-- Use `docs/REAL-PAPER-INTAKE.md` to avoid treating generator-produced draft labels as gold labels.
-- Add author-facing evidence spans or line references.
+- Run the LLM path live on `fixtures-real/` and `examples/freeform-paper.md` once credentials are available; archive the results.
+- Replace surrogate `fixtures-real/` papers with confirmed event papers when available (`docs/REAL-PAPER-INTAKE.md`).
+- Add line references alongside verbatim quotes in evidence layers.
 - Keep `eval-* --archive` as the regression gate after generator changes.
 
 ## Record Locations

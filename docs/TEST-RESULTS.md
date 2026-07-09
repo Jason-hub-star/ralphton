@@ -3,6 +3,38 @@
 This file is the curated judge-facing summary. Full generated artifacts live in
 `runs/`, and archived internal harness evidence lives in `runs/archive/`.
 
+## Two-Layer Generator (2026-07-09)
+
+The generator is now LLM brain + deterministic guards:
+
+- Hardcoded off-scope filler removed; `filtered_criticisms` now comes from a
+  real partition (LLM self-review flags + token-overlap threshold), so
+  `off_scope_filtered_count` varies per paper.
+- LLM path (`scripts/llm_client.py`, Anthropic default / `LLM_PROVIDER=openai`
+  switch): 3 guarded stages — extraction, criticism drafting, self-review.
+  Guards verify every quote verbatim against the paper and every evidence ref
+  against extracted ids; one retry, then degrade to the heuristic path with
+  `"degraded": true`.
+- Review now follows the ICML form (Summary / Claims and Evidence / Relation
+  to Prior Works / Other Aspects / Questions for Authors / Ethical Issues /
+  Overall Recommendation 1–5) with rubric-anchored scores. The anchor mapping
+  spans the full 1–5 range across claim-support profiles (verified: 3/3
+  supported→5, 3/4→4, 2/3→3, 1/3→2, 0/3→1).
+- Degrade path verified end to end: with no credentials,
+  `runs/review-llm-001` completed as `mode=heuristic degraded=True` with the
+  auth error recorded in `degraded_reason`.
+- Regression after the rewrite: `eval-real-002` all metrics 1.0000 PASS;
+  `eval-010` identical to `eval-009` baseline (layer_accuracy 1.0000,
+  target_claim_accuracy 0.9333).
+- Live LLM-path run on real fixtures: pending API credentials.
+
+## Ralph Loop Harness (2026-07-09)
+
+`PROMPT.md` (fresh-context iteration contract, deterministic gates as judge,
+promise tags) + `TASKS.md` (event-day backlog) + `loop.sh` (runner-neutral,
+max-iterations cap). Dry-run verified with stub runners: CONTINUE loops to the
+cap and exits 1; COMPLETE exits 0 on detection.
+
 ## Track 2 Generated Review MVP
 
 Commands:

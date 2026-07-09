@@ -82,12 +82,37 @@ The Track 2 MVP passes if it can:
 4. filter off-scope criticism before review emission,
 5. select exactly one next experiment for the authors.
 
-## Generate A Review
+## Setup
 
-Run:
+The deterministic path needs only the standard library. The LLM path needs
+the Anthropic SDK and credentials:
 
 ```bash
-python3 scripts/generate_see_through_review.py --paper examples/paper.md --run-id review-001
+uv venv && uv pip install anthropic
+export ANTHROPIC_API_KEY=sk-ant-...
+# or switch provider: export LLM_PROVIDER=openai OPENAI_API_KEY=... LLM_MODEL=...
+```
+
+## Generate A Review
+
+The generator is two-layered: an LLM brain (claim/evidence extraction,
+criticism drafting, off-scope self-review) and deterministic guards
+(verbatim-quote verification against the paper, evidence-ref existence,
+token-overlap off-scope filter, rubric-anchored 1–5 scoring). The review
+follows the ICML form: Summary / Claims and Evidence / Relation to Prior
+Works / Other Aspects / Questions for Authors / Ethical Issues / Overall
+Recommendation.
+
+```bash
+.venv/bin/python scripts/generate_see_through_review.py --paper examples/paper.md --run-id review-001
+```
+
+If LLM credentials are missing or a guard fails twice, the run degrades to
+the deterministic heuristic and records `"degraded": true` in the scorecard.
+Force the deterministic path (used by the regression harnesses) with:
+
+```bash
+python3 scripts/generate_see_through_review.py --paper examples/paper.md --run-id review-001 --offline
 ```
 
 Then inspect:
@@ -95,6 +120,18 @@ Then inspect:
 ```bash
 cat runs/review-001/generated_review.md
 cat runs/review-001/review_scorecard.json
+```
+
+## Ralph Loop
+
+`loop.sh` runs a runner-neutral Ralph loop: every iteration re-reads
+`PROMPT.md` with fresh context, does exactly one task from `TASKS.md`, is
+judged by the deterministic gate scripts, commits on pass, and reports via a
+`<promise>CONTINUE|COMPLETE|BLOCKED</promise>` tag that the loop parses.
+
+```bash
+RALPH_RUNNER="claude -p" bash loop.sh --max-iterations 20
+# or: RALPH_RUNNER="codex exec --full-auto -" bash loop.sh
 ```
 
 ## First Test

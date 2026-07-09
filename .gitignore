@@ -3,3 +3,6 @@ __pycache__/
 .DS_Store
 SCOUT.md
 docs/status/SCOUT.md
+.venv/
+runs/loop/
+papers/incoming/
