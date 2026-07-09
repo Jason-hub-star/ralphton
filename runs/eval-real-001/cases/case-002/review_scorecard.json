@@ -1,0 +1,12 @@
+{
+  "claim_count": 3,
+  "generated_criticism_count": 1,
+  "filtered_criticism_count": 2,
+  "grounded_criticism_count": 1,
+  "off_scope_filtered_count": 2,
+  "hallucination_guard_status": "PASS",
+  "verdict": "PASS",
+  "supported_claim_count": 2,
+  "needs_experiment_claim_count": 1,
+  "weak_claim_count": 0
+}

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.DS_Store
+SCOUT.md
+docs/status/SCOUT.md

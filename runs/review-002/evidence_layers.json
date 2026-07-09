@@ -1,0 +1,91 @@
+{
+  "paper": {
+    "path": "fixtures-unseen-3/case-001/paper.md",
+    "title": "Live Review Selector"
+  },
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The selector rejects unsupported reviewer requests in 11 of 12 synthetic review fixtures.",
+      "evidence_refs": [
+        "E1"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The claim has overlapping evidence in the paper."
+    },
+    {
+      "id": "C2",
+      "text": "The selector keeps every criticism tied to an explicit paper limitation.",
+      "evidence_refs": [
+        "E2"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The claim has overlapping evidence in the paper."
+    },
+    {
+      "id": "C3",
+      "text": "No live LLM-generated review test has been run.",
+      "evidence_refs": [
+        "E3"
+      ],
+      "evidence_status": "needs_experiment",
+      "rationale": "The claim is prospective, missing a direct run, or tied to an explicit limitation."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "text": "The fixture table reports 11 rejected unsupported requests out of 12 synthetic reviews."
+    },
+    {
+      "id": "E2",
+      "text": "The audit says all explicit-limitation criticisms were preserved."
+    },
+    {
+      "id": "E3",
+      "text": "The limitation section says no live LLM-generated review test has been run."
+    }
+  ],
+  "limitations": [
+    {
+      "source_id": "E3",
+      "text": "The limitation section says no live LLM-generated review test has been run."
+    }
+  ],
+  "generated_criticisms": [
+    {
+      "id": "G1",
+      "target_claim": "C3",
+      "layer": "needs_experiment",
+      "text": "C3 is not review-ready yet: The claim is prospective, missing a direct run, or tied to an explicit limitation. Current evidence: The limitation section says no live LLM-generated review test has been run.",
+      "evidence_refs": [
+        "E3"
+      ],
+      "hidden_assumption": "The paper artifact contains enough context to run a targeted validation without redesigning the method."
+    }
+  ],
+  "filtered_criticisms": [
+    {
+      "id": "F1",
+      "text": "The authors should build a mobile dashboard before evaluation.",
+      "filter_reason": "off_scope: product packaging is not evidence for the paper claim."
+    },
+    {
+      "id": "F2",
+      "text": "The authors should compare against image classification benchmarks.",
+      "filter_reason": "off_scope: benchmark family is unrelated to the submitted claims."
+    }
+  ],
+  "selected_next_experiment": {
+    "id": "NEXT-1",
+    "from_criticism": "G1",
+    "target_claim": "C3",
+    "hypothesis": "A bounded experiment can resolve whether the paper's evidence supports C3: No live LLM-generated review test has been run.",
+    "baseline": "Use the closest reported evidence sentence as the baseline before running the missing check.",
+    "metric": "claim-specific pass rate",
+    "keep_condition": "claim-specific pass rate passes on a held-out fixture and the evidence can be reproduced from saved artifacts.",
+    "discard_condition": "claim-specific pass rate fails on the held-out fixture or requires evidence not present in the paper artifacts.",
+    "verify": "Run the smallest saved fixture that directly targets C3 and attach the run artifact."
+  },
+  "generated_at": "2026-07-09T16:54:20"
+}

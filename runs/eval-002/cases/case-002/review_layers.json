@@ -1,0 +1,79 @@
+{
+  "run_id": "case-002",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The BM25 baseline reaches 41% top-1 accuracy on the saved 100-query fixture.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "The cross-encoder reranker improves top-1 accuracy to 58% on the same fixture.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C3",
+      "text": "The reranker adds 120 ms median latency per query.",
+      "evidence_status": "supported"
+    }
+  ],
+  "review_layers": [
+    {
+      "id": "R1",
+      "text": "The paper does not report the BM25 baseline, so the improvement claim is unsupported.",
+      "target_claims": [
+        "C1",
+        "C2"
+      ],
+      "layer": "contradicted",
+      "evidence": [
+        "Paper explicitly reports the BM25 baseline and reranker result."
+      ],
+      "hidden_assumption": "Reviewer missed an explicit baseline table entry.",
+      "next_action": "Do not spend the next loop on this criticism."
+    },
+    {
+      "id": "R2",
+      "text": "The long-tail query behavior is unclear and needs an ablation.",
+      "target_claims": [
+        "C2"
+      ],
+      "layer": "needs_experiment",
+      "evidence": [
+        "Paper does not include a long-tail query ablation."
+      ],
+      "hidden_assumption": "A long-tail slice is available or can be constructed from the fixture.",
+      "next_action": "Run a long-tail query ablation."
+    },
+    {
+      "id": "R3",
+      "text": "The reviewer asks for a mobile app usability study before accepting the reranker.",
+      "target_claims": [],
+      "layer": "off_scope",
+      "evidence": [
+        "Review request is outside the paper's stated research claim or scope."
+      ],
+      "hidden_assumption": "Reviewer imported a requirement from a different task.",
+      "next_action": "Ignore for this loop unless the paper adds image inputs."
+    }
+  ],
+  "selected_experiment": {
+    "id": "E1",
+    "from_review": "R2",
+    "target_claim": "C2",
+    "hypothesis": "Run a long-tail query ablation",
+    "baseline": "current paper evidence",
+    "metric": "claim-specific success metric",
+    "keep_condition": "measurable improvement or direct support for the target claim",
+    "discard_condition": "no measurable support or new regression evidence",
+    "verify": "Run a long-tail query ablation."
+  },
+  "metrics": {
+    "criticism_count": 3,
+    "grounded_count": 0,
+    "weak_count": 0,
+    "off_scope_count": 1,
+    "contradicted_count": 1,
+    "needs_experiment_count": 1
+  }
+}

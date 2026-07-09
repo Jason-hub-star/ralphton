@@ -1,0 +1,78 @@
+{
+  "run_id": "case-004",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The router filters rubric-irrelevant comments in 8 of 10 synthetic reviews.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "The paper reports a calibration curve over confidence buckets.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C3",
+      "text": "The evaluation has not been run with adversarial reviewer personas.",
+      "evidence_status": "supported"
+    }
+  ],
+  "review_layers": [
+    {
+      "id": "R1",
+      "text": "The paper ignores visual camera calibration for the review router.",
+      "target_claims": [],
+      "layer": "off_scope",
+      "evidence": [
+        "Review request is outside the paper's stated research claim or scope."
+      ],
+      "hidden_assumption": "Reviewer imported a requirement from a different task.",
+      "next_action": "Ignore for this loop unless the paper adds image inputs."
+    },
+    {
+      "id": "R2",
+      "text": "It has not been tested with adversarial reviewer personas.",
+      "target_claims": [
+        "C3"
+      ],
+      "layer": "needs_experiment",
+      "evidence": [
+        "Paper says adversarial reviewer personas have not been run."
+      ],
+      "hidden_assumption": "Adversarial reviewer styles may change routing behavior.",
+      "next_action": "Run the router on adversarial reviewer personas."
+    },
+    {
+      "id": "R3",
+      "text": "The paper provides no calibration curve.",
+      "target_claims": [
+        "C2"
+      ],
+      "layer": "contradicted",
+      "evidence": [
+        "Paper explicitly reports a calibration curve."
+      ],
+      "hidden_assumption": "Reviewer missed a reported calibration artifact.",
+      "next_action": "Do not spend the next loop on this criticism."
+    }
+  ],
+  "selected_experiment": {
+    "id": "E1",
+    "from_review": "R2",
+    "target_claim": "C3",
+    "hypothesis": "Run the router on adversarial reviewer personas",
+    "baseline": "current paper evidence",
+    "metric": "claim-specific success metric",
+    "keep_condition": "measurable improvement or direct support for the target claim",
+    "discard_condition": "no measurable support or new regression evidence",
+    "verify": "Run the router on adversarial reviewer personas."
+  },
+  "metrics": {
+    "criticism_count": 3,
+    "grounded_count": 0,
+    "weak_count": 0,
+    "off_scope_count": 1,
+    "contradicted_count": 1,
+    "needs_experiment_count": 1
+  }
+}

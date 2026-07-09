@@ -1,0 +1,26 @@
+{
+  "case_id": "case-005",
+  "criticisms": [
+    {
+      "criticism_id": "R1",
+      "expected_layer": "contradicted",
+      "target_claims": ["C2"],
+      "should_be_next_experiment": false,
+      "rationale": "The paper says all explicit reviewer constraints are preserved."
+    },
+    {
+      "criticism_id": "R2",
+      "expected_layer": "needs_experiment",
+      "target_claims": ["C3"],
+      "should_be_next_experiment": true,
+      "rationale": "The missing human-written revision plan baseline is a concrete next comparison."
+    },
+    {
+      "criticism_id": "R3",
+      "expected_layer": "weak",
+      "target_claims": ["C1"],
+      "should_be_next_experiment": false,
+      "rationale": "The small audit size weakens confidence but is not the most decisive next experiment."
+    }
+  ]
+}

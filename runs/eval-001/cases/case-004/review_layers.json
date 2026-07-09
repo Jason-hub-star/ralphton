@@ -1,0 +1,78 @@
+{
+  "run_id": "case-004",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The review calibrator catches 6 unsupported criticisms out of 20 synthetic reviews.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "The calibrator preserves all grounded criticisms in the same fixture.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C3",
+      "text": "The calibrator does not evaluate reviewer tone or writing style.",
+      "evidence_status": "supported"
+    }
+  ],
+  "review_layers": [
+    {
+      "id": "R1",
+      "text": "The paper ignores reviewer tone, which is the key signal for review quality.",
+      "target_claims": [],
+      "layer": "off_scope",
+      "evidence": [
+        "Review request is outside the paper's stated research claim or scope."
+      ],
+      "hidden_assumption": "Reviewer imported a requirement from a different task.",
+      "next_action": "Ignore for this loop unless the paper adds image inputs."
+    },
+    {
+      "id": "R2",
+      "text": "The paper reports unsupported criticism catches but does not run on real conference reviews.",
+      "target_claims": [
+        "C3"
+      ],
+      "layer": "weak",
+      "evidence": [
+        "Paper states that no post-fallback run has been executed yet."
+      ],
+      "hidden_assumption": "The saved fixture can evaluate the proposed fallback.",
+      "next_action": "Run or dry-run the fallback on the 30-item fixture."
+    },
+    {
+      "id": "R3",
+      "text": "The preservation of grounded criticisms is supported only on synthetic reviews.",
+      "target_claims": [
+        "C2"
+      ],
+      "layer": "weak",
+      "evidence": [
+        "Paper evidence is fixture-limited but not contradicted."
+      ],
+      "hidden_assumption": "More cases may expose rare failures.",
+      "next_action": "Defer broadening until the primary missing experiment is resolved."
+    }
+  ],
+  "selected_experiment": {
+    "id": "E1",
+    "from_review": "R2",
+    "target_claim": "C3",
+    "hypothesis": "Run or dry-run the fallback on the 30-item fixture",
+    "baseline": "current paper evidence",
+    "metric": "claim-specific success metric",
+    "keep_condition": "measurable improvement or direct support for the target claim",
+    "discard_condition": "no measurable support or new regression evidence",
+    "verify": "Run or dry-run the fallback on the 30-item fixture."
+  },
+  "metrics": {
+    "criticism_count": 3,
+    "grounded_count": 0,
+    "weak_count": 2,
+    "off_scope_count": 1,
+    "contradicted_count": 0,
+    "needs_experiment_count": 0
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "run_id": "case-001",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The loop scheduler reduces idle tool time from 42 minutes to 18 minutes on 12 Auto Research tasks.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "The benchmark reports the planner-only baseline and the scheduler result in Table 1.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C3",
+      "text": "The study leaves model-tier cost ablations for future work.",
+      "evidence_status": "supported"
+    }
+  ],
+  "review_layers": [
+    {
+      "id": "R1",
+      "text": "The paper does not report the planner-only baseline, so the scheduler gain is unsupported.",
+      "target_claims": [
+        "C2"
+      ],
+      "layer": "contradicted",
+      "evidence": [
+        "Paper explicitly reports the planner-only baseline."
+      ],
+      "hidden_assumption": "Reviewer missed a reported baseline.",
+      "next_action": "Do not spend the next loop on this criticism."
+    },
+    {
+      "id": "R2",
+      "text": "The paper never runs model-tier cost ablations, so the chosen workflow may be uneconomical.",
+      "target_claims": [
+        "C3"
+      ],
+      "layer": "needs_experiment",
+      "evidence": [
+        "Paper lists model-tier cost ablations as future work."
+      ],
+      "hidden_assumption": "Cost can change the preferred workflow even if quality holds.",
+      "next_action": "Run a model-tier cost ablation."
+    },
+    {
+      "id": "R3",
+      "text": "The system should ship a mobile notification app for annotators.",
+      "target_claims": [],
+      "layer": "off_scope",
+      "evidence": [
+        "Review request is outside the paper's stated research claim or scope."
+      ],
+      "hidden_assumption": "Reviewer imported a requirement from a different task.",
+      "next_action": "Ignore for this loop unless the paper adds image inputs."
+    }
+  ],
+  "selected_experiment": {
+    "id": "E1",
+    "from_review": "R2",
+    "target_claim": "C3",
+    "hypothesis": "Run a model-tier cost ablation",
+    "baseline": "current paper evidence",
+    "metric": "claim-specific success metric",
+    "keep_condition": "measurable improvement or direct support for the target claim",
+    "discard_condition": "no measurable support or new regression evidence",
+    "verify": "Run a model-tier cost ablation."
+  },
+  "metrics": {
+    "criticism_count": 3,
+    "grounded_count": 0,
+    "weak_count": 0,
+    "off_scope_count": 1,
+    "contradicted_count": 1,
+    "needs_experiment_count": 1
+  }
+}

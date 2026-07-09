@@ -1,0 +1,26 @@
+{
+  "case_id": "case-002",
+  "criticisms": [
+    {
+      "criticism_id": "R1",
+      "expected_layer": "grounded",
+      "target_claims": ["C3"],
+      "should_be_next_experiment": true,
+      "rationale": "The paper explicitly says no post-fallback run has been executed yet."
+    },
+    {
+      "criticism_id": "R2",
+      "expected_layer": "weak",
+      "target_claims": ["C1"],
+      "should_be_next_experiment": false,
+      "rationale": "A 20-item bundle may be limited, but this is less concrete than the missing fallback run."
+    },
+    {
+      "criticism_id": "R3",
+      "expected_layer": "off_scope",
+      "target_claims": [],
+      "should_be_next_experiment": false,
+      "rationale": "GPU kernel performance is unrelated to the evidence-runner claim."
+    }
+  ]
+}

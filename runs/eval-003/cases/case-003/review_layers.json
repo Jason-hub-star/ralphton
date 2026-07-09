@@ -1,0 +1,80 @@
+{
+  "run_id": "case-003",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The harness records every tool call and exit code for 25 tool-use episodes.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "The paper does not include a long-horizon task suite beyond 20 minutes.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C3",
+      "text": "The run log reports zero parser crashes on the fixture.",
+      "evidence_status": "supported"
+    }
+  ],
+  "review_layers": [
+    {
+      "id": "R1",
+      "text": "The paper says nothing about parser crashes, so the logging layer may be broken.",
+      "target_claims": [
+        "C3"
+      ],
+      "layer": "contradicted",
+      "evidence": [
+        "Paper explicitly reports zero parser crashes."
+      ],
+      "hidden_assumption": "Reviewer missed a run-log result.",
+      "next_action": "Do not spend the next loop on this criticism."
+    },
+    {
+      "id": "R2",
+      "text": "The evaluation lacks long-horizon tasks beyond 20 minutes.",
+      "target_claims": [
+        "C2"
+      ],
+      "layer": "needs_experiment",
+      "evidence": [
+        "Paper does not include the long-horizon task suite."
+      ],
+      "hidden_assumption": "Longer tasks may expose tool-use failures hidden by short episodes.",
+      "next_action": "Run a long-horizon task suite beyond 20 minutes."
+    },
+    {
+      "id": "R3",
+      "text": "The fixture count is small enough that rare tool failures may be missed.",
+      "target_claims": [
+        "C2"
+      ],
+      "layer": "weak",
+      "evidence": [
+        "Paper evidence is fixture-limited but not contradicted."
+      ],
+      "hidden_assumption": "More cases may expose rare failures.",
+      "next_action": "Defer broadening until the primary missing experiment is resolved."
+    }
+  ],
+  "selected_experiment": {
+    "id": "E1",
+    "from_review": "R2",
+    "target_claim": "C2",
+    "hypothesis": "Run a long-horizon task suite beyond 20 minutes",
+    "baseline": "current paper evidence",
+    "metric": "claim-specific success metric",
+    "keep_condition": "measurable improvement or direct support for the target claim",
+    "discard_condition": "no measurable support or new regression evidence",
+    "verify": "Run a long-horizon task suite beyond 20 minutes."
+  },
+  "metrics": {
+    "criticism_count": 3,
+    "grounded_count": 0,
+    "weak_count": 1,
+    "off_scope_count": 0,
+    "contradicted_count": 1,
+    "needs_experiment_count": 1
+  }
+}

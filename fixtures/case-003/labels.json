@@ -1,0 +1,27 @@
+{
+  "case_id": "case-003",
+  "criticisms": [
+    {
+      "criticism_id": "R1",
+      "expected_layer": "contradicted",
+      "target_claims": ["C1"],
+      "should_be_next_experiment": false,
+      "rationale": "The paper explicitly reports token counts before and after compression."
+    },
+    {
+      "criticism_id": "R2",
+      "expected_layer": "needs_experiment",
+      "target_claims": ["C3"],
+      "should_be_next_experiment": true,
+      "rationale": "The paper says multi-file refactors are future work."
+    },
+    {
+      "criticism_id": "R3",
+      "expected_layer": "weak",
+      "target_claims": ["C2"],
+      "should_be_next_experiment": false,
+      "rationale": "Small benchmark concern is plausible but less direct than the missing multi-file test."
+    }
+  ]
+}
+

@@ -1,0 +1,78 @@
+{
+  "run_id": "manual-001",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The baseline source enrichment success rate is 27% on the saved 30-item fixture.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "Korean-language items form the largest identifiable failure cluster.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C3",
+      "text": "A Korean-language fallback should improve enrichment success rate to at least 50%.",
+      "evidence_status": "needs_experiment"
+    }
+  ],
+  "review_layers": [
+    {
+      "id": "R1",
+      "text": "The paper claims improvement to 50% but does not run the fallback.",
+      "target_claims": [
+        "C3"
+      ],
+      "layer": "grounded",
+      "evidence": [
+        "Paper states that no post-fallback run has been executed yet."
+      ],
+      "hidden_assumption": "The saved fixture can evaluate the proposed fallback.",
+      "next_action": "Run or dry-run the fallback on the 30-item fixture."
+    },
+    {
+      "id": "R2",
+      "text": "The paper may overfit to a single 30-item fixture.",
+      "target_claims": [
+        "C3"
+      ],
+      "layer": "weak",
+      "evidence": [
+        "Paper uses one 30-item fixture; generalization is not tested."
+      ],
+      "hidden_assumption": "A second fixture or split would reveal generalization risk.",
+      "next_action": "Add a second fixture only after the first fallback run passes."
+    },
+    {
+      "id": "R3",
+      "text": "The paper ignores image classification performance, which could affect the conclusion.",
+      "target_claims": [],
+      "layer": "off_scope",
+      "evidence": [
+        "Review request is outside the paper's stated research claim or scope."
+      ],
+      "hidden_assumption": "Reviewer imported a requirement from a different task.",
+      "next_action": "Ignore for this loop unless the paper adds image inputs."
+    }
+  ],
+  "selected_experiment": {
+    "id": "E1",
+    "from_review": "R1",
+    "target_claim": "C3",
+    "hypothesis": "Run or dry-run the fallback on the 30-item fixture",
+    "baseline": "current paper evidence",
+    "metric": "claim-specific success metric",
+    "keep_condition": "measurable improvement or direct support for the target claim",
+    "discard_condition": "no measurable support or new regression evidence",
+    "verify": "Run or dry-run the fallback on the 30-item fixture."
+  },
+  "metrics": {
+    "criticism_count": 3,
+    "grounded_count": 1,
+    "weak_count": 1,
+    "off_scope_count": 1,
+    "contradicted_count": 0,
+    "needs_experiment_count": 0
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "case_count": 5,
+  "criticism_count": 15,
+  "layer_accuracy": 1.0,
+  "target_claim_accuracy": 0.9333,
+  "error_summary": {},
+  "off_scope_catch_rate": 1.0,
+  "grounded_preservation_rate": 1.0,
+  "next_experiment_precision": 1.0,
+  "raw_review_baseline": "first criticism in the raw review",
+  "raw_next_experiment_precision": 0.4,
+  "see_through_next_experiment_gain": 0.6,
+  "case_verdicts": {
+    "case-001": "PASS",
+    "case-002": "PASS",
+    "case-003": "PASS",
+    "case-004": "PASS",
+    "case-005": "PASS"
+  },
+  "label_distribution": {
+    "grounded": 2,
+    "contradicted": 3,
+    "off_scope": 5,
+    "weak": 2,
+    "needs_experiment": 3
+  },
+  "confusion_matrix": {
+    "grounded": {
+      "grounded": 2,
+      "weak": 0,
+      "off_scope": 0,
+      "contradicted": 0,
+      "needs_experiment": 0,
+      "missing": 0
+    },
+    "weak": {
+      "grounded": 0,
+      "weak": 2,
+      "off_scope": 0,
+      "contradicted": 0,
+      "needs_experiment": 0,
+      "missing": 0
+    },
+    "off_scope": {
+      "grounded": 0,
+      "weak": 0,
+      "off_scope": 5,
+      "contradicted": 0,
+      "needs_experiment": 0,
+      "missing": 0
+    },
+    "contradicted": {
+      "grounded": 0,
+      "weak": 0,
+      "off_scope": 0,
+      "contradicted": 3,
+      "needs_experiment": 0,
+      "missing": 0
+    },
+    "needs_experiment": {
+      "grounded": 0,
+      "weak": 0,
+      "off_scope": 0,
+      "contradicted": 0,
+      "needs_experiment": 3,
+      "missing": 0
+    }
+  },
+  "generated_at": "2026-07-09T15:48:51"
+}

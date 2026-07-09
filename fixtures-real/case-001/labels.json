@@ -1,0 +1,30 @@
+{
+  "case_id": "case-001",
+  "expected_claim_count": 3,
+  "claims": [
+    {
+      "id": "C1",
+      "expected_status": "supported",
+      "expected_evidence_refs": ["E1"]
+    },
+    {
+      "id": "C2",
+      "expected_status": "supported",
+      "expected_evidence_refs": ["E2"]
+    },
+    {
+      "id": "C3",
+      "expected_status": "needs_experiment",
+      "expected_evidence_refs": ["E3"]
+    }
+  ],
+  "limitations": [
+    {
+      "source_id": "E3",
+      "text_contains": "not been tested"
+    }
+  ],
+  "selected_next_experiment": {
+    "target_claim": "C3"
+  }
+}

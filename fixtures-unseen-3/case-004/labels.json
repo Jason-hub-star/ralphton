@@ -1,0 +1,26 @@
+{
+  "case_id": "case-004",
+  "criticisms": [
+    {
+      "criticism_id": "R1",
+      "expected_layer": "contradicted",
+      "target_claims": ["C2"],
+      "should_be_next_experiment": false,
+      "rationale": "The paper includes a first-criticism raw review baseline."
+    },
+    {
+      "criticism_id": "R2",
+      "expected_layer": "needs_experiment",
+      "target_claims": ["C3"],
+      "should_be_next_experiment": true,
+      "rationale": "Rebuttal-stage reviews are explicitly untested."
+    },
+    {
+      "criticism_id": "R3",
+      "expected_layer": "off_scope",
+      "target_claims": [],
+      "should_be_next_experiment": false,
+      "rationale": "Satellite image classification is unrelated to review-comment ranking."
+    }
+  ]
+}

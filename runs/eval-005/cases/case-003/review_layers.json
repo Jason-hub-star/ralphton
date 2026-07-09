@@ -1,0 +1,78 @@
+{
+  "run_id": "case-003",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The generator emits bounded keep and discard conditions for 14 of 15 review criticisms.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "The output schema is validated by a deterministic JSON checker.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C3",
+      "text": "It does not test whether researchers can execute the generated cards within one day.",
+      "evidence_status": "supported"
+    }
+  ],
+  "review_layers": [
+    {
+      "id": "R1",
+      "text": "The paper does not validate the output schema.",
+      "target_claims": [
+        "C2"
+      ],
+      "layer": "contradicted",
+      "evidence": [
+        "Paper claim text reports the item that the review says is absent."
+      ],
+      "hidden_assumption": "Reviewer missed or discounted an explicit paper claim.",
+      "next_action": "Do not spend the next loop on this criticism."
+    },
+    {
+      "id": "R2",
+      "text": "It remains unclear whether a researcher can actually execute the generated experiment cards in one day.",
+      "target_claims": [
+        "C3"
+      ],
+      "layer": "needs_experiment",
+      "evidence": [
+        "Paper claim text marks this evaluation or comparison as missing."
+      ],
+      "hidden_assumption": "The missing evaluation can be turned into a bounded next-loop run.",
+      "next_action": "Run the missing evaluation or comparison named by the claim."
+    },
+    {
+      "id": "R3",
+      "text": "The paper should include a voice assistant to read the cards aloud.",
+      "target_claims": [],
+      "layer": "off_scope",
+      "evidence": [
+        "Review request is outside the paper's stated research claim or scope."
+      ],
+      "hidden_assumption": "Reviewer imported a requirement from a different task.",
+      "next_action": "Ignore for this loop unless the paper adds image inputs."
+    }
+  ],
+  "selected_experiment": {
+    "id": "E1",
+    "from_review": "R2",
+    "target_claim": "C3",
+    "hypothesis": "Run the missing evaluation or comparison named by the claim",
+    "baseline": "current paper evidence",
+    "metric": "claim-specific success metric",
+    "keep_condition": "measurable improvement or direct support for the target claim",
+    "discard_condition": "no measurable support or new regression evidence",
+    "verify": "Run the missing evaluation or comparison named by the claim."
+  },
+  "metrics": {
+    "criticism_count": 3,
+    "grounded_count": 0,
+    "weak_count": 0,
+    "off_scope_count": 1,
+    "contradicted_count": 1,
+    "needs_experiment_count": 1
+  }
+}

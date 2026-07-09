@@ -1,0 +1,26 @@
+{
+  "case_id": "case-001",
+  "criticisms": [
+    {
+      "criticism_id": "R1",
+      "expected_layer": "contradicted",
+      "target_claims": ["C2"],
+      "should_be_next_experiment": false,
+      "rationale": "The paper explicitly reports the planner-only baseline in Table 1."
+    },
+    {
+      "criticism_id": "R2",
+      "expected_layer": "needs_experiment",
+      "target_claims": ["C3"],
+      "should_be_next_experiment": true,
+      "rationale": "Model-tier cost ablation is future work and needs a bounded run."
+    },
+    {
+      "criticism_id": "R3",
+      "expected_layer": "off_scope",
+      "target_claims": [],
+      "should_be_next_experiment": false,
+      "rationale": "A mobile notification app is product scope, not evidence for the workflow benchmark."
+    }
+  ]
+}

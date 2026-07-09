@@ -1,0 +1,26 @@
+{
+  "case_id": "case-003",
+  "criticisms": [
+    {
+      "criticism_id": "R1",
+      "expected_layer": "contradicted",
+      "target_claims": ["C3"],
+      "should_be_next_experiment": false,
+      "rationale": "The paper reports zero parser crashes in the run log."
+    },
+    {
+      "criticism_id": "R2",
+      "expected_layer": "needs_experiment",
+      "target_claims": ["C2"],
+      "should_be_next_experiment": true,
+      "rationale": "The missing long-horizon suite requires an additional benchmark run."
+    },
+    {
+      "criticism_id": "R3",
+      "expected_layer": "weak",
+      "target_claims": ["C1"],
+      "should_be_next_experiment": false,
+      "rationale": "The small fixture may miss rare failures, but the criticism does not name a bounded experiment."
+    }
+  ]
+}
