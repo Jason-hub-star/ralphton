@@ -1,0 +1,78 @@
+{
+  "run_id": "case-002",
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The runner builds a reproducible artifact bundle for 20 review experiments.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C2",
+      "text": "The bundle includes paper, review, labels, and run metadata.",
+      "evidence_status": "supported"
+    },
+    {
+      "id": "C3",
+      "text": "No post-fallback run has been executed yet.",
+      "evidence_status": "supported"
+    }
+  ],
+  "review_layers": [
+    {
+      "id": "R1",
+      "text": "The paper does not run the fallback after adding the evidence bundle.",
+      "target_claims": [
+        "C3"
+      ],
+      "layer": "grounded",
+      "evidence": [
+        "Paper states that no post-fallback run has been executed yet."
+      ],
+      "hidden_assumption": "The saved fixture can evaluate the proposed fallback.",
+      "next_action": "Run or dry-run the fallback on the 30-item fixture."
+    },
+    {
+      "id": "R2",
+      "text": "The bundle is only tested on 20 review experiments.",
+      "target_claims": [
+        "C1"
+      ],
+      "layer": "weak",
+      "evidence": [
+        "No deterministic fixture rule matched this criticism."
+      ],
+      "hidden_assumption": "Needs LLM-assisted mapping in the next version.",
+      "next_action": "Route to manual review."
+    },
+    {
+      "id": "R3",
+      "text": "The authors should optimize GPU kernel performance for the runner.",
+      "target_claims": [],
+      "layer": "off_scope",
+      "evidence": [
+        "Review request is outside the paper's stated research claim or scope."
+      ],
+      "hidden_assumption": "Reviewer imported a requirement from a different task.",
+      "next_action": "Ignore for this loop unless the paper adds image inputs."
+    }
+  ],
+  "selected_experiment": {
+    "id": "E1",
+    "from_review": "R1",
+    "target_claim": "C3",
+    "hypothesis": "Run or dry-run the fallback on the 30-item fixture",
+    "baseline": "current paper evidence",
+    "metric": "claim-specific success metric",
+    "keep_condition": "measurable improvement or direct support for the target claim",
+    "discard_condition": "no measurable support or new regression evidence",
+    "verify": "Run or dry-run the fallback on the 30-item fixture."
+  },
+  "metrics": {
+    "criticism_count": 3,
+    "grounded_count": 1,
+    "weak_count": 1,
+    "off_scope_count": 1,
+    "contradicted_count": 0,
+    "needs_experiment_count": 0
+  }
+}

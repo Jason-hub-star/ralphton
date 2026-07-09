@@ -1,0 +1,152 @@
+{
+  "paper": {
+    "path": "fixtures-real/case-003/paper.md",
+    "title": "Evidence Ledger Compressor for Long Ralph Loops"
+  },
+  "mode": "llm",
+  "degraded": false,
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The compressor reduces a 19,400-token Ralph Loop log to a 1,180-token curated status page.",
+      "evidence_refs": [
+        "E1",
+        "E2"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The abstract states this reduction, and the evidence section provides the concrete token counts that match these numbers."
+    },
+    {
+      "id": "C2",
+      "text": "The compressed status page preserves all 12 gold evidence anchors from the original loop log.",
+      "evidence_refs": [
+        "E3"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The evidence section explicitly reports that 12 of 12 gold anchors are preserved, directly supporting this claim."
+    },
+    {
+      "id": "C3",
+      "text": "The compressor is intended to generalize to multi-agent Ralph loops with more than three agents.",
+      "evidence_refs": [
+        "E4",
+        "E6"
+      ],
+      "evidence_status": "needs_experiment",
+      "rationale": "The claim is phrased as an expectation ('should generalize'), and the evidence section clarifies that no such multi-agent loops were included in the evaluation, so this remains untested."
+    },
+    {
+      "id": "C4",
+      "text": "The evaluation of the compressor currently covers only a single saved loop family.",
+      "evidence_refs": [
+        "E5",
+        "E6"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The limitations section explicitly states that the evaluation covers one saved loop family and notes untested generalization, directly supporting this claim about scope."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "text": "The compressor reduces a 19,400-token loop log to a 1,180-token curated status page."
+    },
+    {
+      "id": "E2",
+      "text": "The token count table reports 19,400 input tokens and 1,180 output tokens for the saved loop."
+    },
+    {
+      "id": "E3",
+      "text": "The evidence-anchor audit reports 12 of 12 gold anchors preserved in the compressed status page."
+    },
+    {
+      "id": "E4",
+      "text": "The compressor should generalize to multi-agent loops with more than three agents."
+    },
+    {
+      "id": "E5",
+      "text": "The evaluation covers one saved loop family."
+    },
+    {
+      "id": "E6",
+      "text": "Cross-loop and multi-agent generalization remain untested."
+    }
+  ],
+  "limitations": [
+    {
+      "source_id": "E5",
+      "text": "The evaluation covers one saved loop family."
+    },
+    {
+      "source_id": "E6",
+      "text": "Cross-loop and multi-agent generalization remain untested."
+    }
+  ],
+  "generated_criticisms": [
+    {
+      "id": "G1",
+      "target_claim": "C1",
+      "layer": "needs_experiment",
+      "text": "While the paper shows that the compressor can reduce a specific 19,400-token loop log to 1,180 tokens, it is unclear whether similar compression ratios hold for other loop logs or whether this example is cherry-picked. The core evidence is a single instance: \"The token count table reports 19,400 input tokens and 1,180 output tokens for the saved loop.\" Relying on one saved loop family (E5) assumes that this example is representative of broader usage, which has not been demonstrated. A bounded set of additional experiments across multiple diverse loop logs would clarify the robustness and typicality of the reported compression ratio.",
+      "evidence_refs": [
+        "E1",
+        "E2",
+        "E5"
+      ],
+      "quote": "The token count table reports 19,400 input tokens and 1,180 output tokens for the saved loop.",
+      "hidden_assumption": "The evaluated saved loop is representative of the broader distribution of Ralph Loop logs to which the compressor will be applied."
+    },
+    {
+      "id": "G2",
+      "target_claim": "C2",
+      "layer": "needs_experiment",
+      "text": "The claim that all 12 gold evidence anchors are preserved is based on a single audit for one loop, which limits confidence that anchor preservation will remain perfect under different conditions or loop structures. The paper states that \"The evidence-anchor audit reports 12 of 12 gold anchors preserved in the compressed status page.\" This assumes that the mechanism for preserving anchors will scale to other logs and configurations without degradation, which has not yet been tested. Additional audits over multiple loops with varied structures would strengthen the evidence that anchor preservation is robust.",
+      "evidence_refs": [
+        "E3",
+        "E5"
+      ],
+      "quote": "The evidence-anchor audit reports 12 of 12 gold anchors preserved in the compressed status page.",
+      "hidden_assumption": "Perfect preservation of gold evidence anchors in one loop implies similarly high preservation rates across other loops and settings."
+    }
+  ],
+  "filtered_criticisms": [
+    {
+      "id": "G3",
+      "target_claim": "C3",
+      "layer": "off_scope",
+      "text": "The stated expectation that the compressor \"should generalize to multi-agent loops with more than three agents\" is not supported by any empirical evaluation, as the paper explicitly notes that such generalization remains untested. The limitations emphasize that \"Cross-loop and multi-agent generalization remain untested.\" This relies on the assumption that the current design will seamlessly extend to more complex multi-agent dynamics without modification or failure, which is nontrivial. A focused experiment on at least one multi-agent loop with more than three agents would directly test this claim.",
+      "evidence_refs": [
+        "E4",
+        "E6"
+      ],
+      "quote": "Cross-loop and multi-agent generalization remain untested.",
+      "hidden_assumption": "The current compressor architecture will maintain its compression effectiveness and evidence preservation properties when applied to multi-agent loops with more than three agents.",
+      "filter_reason": "off_scope: This criticism conflicts with the instruction not to penalize work for being outside scope and partly mischaracterizes the claim. Claim 3 is phrased with hedging (\u201cThe compressor should generalize to multi-agent loops with more than three agents.\u201d), and the paper is explicit in Limitations: \u201cCross-loop and multi-agent generalization remain untested\u201d and that \u201cNo multi-agent loop with more than three agents is included in the evaluation.\u201d The criticism essentially restates this already-acknowledged gap and demands a new class of experiment (multi-agent loops with >3 agents) that is clearly beyond the current empirical scope. It does not identify a new unchecked assumption within the stated scope, so per instructions it should be dropped."
+    },
+    {
+      "id": "G4",
+      "target_claim": "C4",
+      "layer": "off_scope",
+      "text": "The evaluation being limited to \"one saved loop family\" raises concerns about overfitting the design and metrics to this single case and leaves uncertainty about behavior on other loop families. The paper admits that \"The evaluation covers one saved loop family\" and further that \"Cross-loop and multi-agent generalization remain untested.\" This is a direct scope limitation rather than a logical flaw, but it substantially constrains how broadly the current results can be interpreted. Expanding the evaluation to multiple loop families would address this gap and support stronger general claims.",
+      "evidence_refs": [
+        "E5",
+        "E6"
+      ],
+      "quote": "The evaluation covers one saved loop family.",
+      "hidden_assumption": "Insights and performance observed on a single saved loop family can be extrapolated to other loop families without additional validation.",
+      "filter_reason": "off_scope: This is effectively a restatement of the paper\u2019s own limitations without adding a new check. The paper explicitly says: \u201cThe evaluation covers one saved loop family\u201d and \u201cCross-loop and multi-agent generalization remain untested.\u201d The criticism repeats these points and then suggests expanding to multiple loop families, which aligns with the authors\u2019 already-acknowledged future work direction. Since it does not uncover an unacknowledged flaw or propose a concrete evaluation within the current scope beyond what the authors already concede, it falls under the category of restating a limitation and should be dropped."
+    }
+  ],
+  "selected_next_experiment": {
+    "id": "NEXT-1",
+    "from_criticism": "G1",
+    "target_claim": "C1",
+    "hypothesis": "A bounded experiment can resolve whether the paper's evidence supports C1: The compressor reduces a 19,400-token Ralph Loop log to a 1,180-token curated status page.",
+    "baseline": "Use the closest reported evidence sentence as the baseline before running the missing check.",
+    "metric": "claim-specific pass rate",
+    "keep_condition": "claim-specific pass rate passes on a held-out fixture and the evidence can be reproduced from saved artifacts.",
+    "discard_condition": "claim-specific pass rate fails on the held-out fixture or requires evidence not present in the paper artifacts.",
+    "verify": "Run the smallest saved fixture that directly targets C1 and attach the run artifact."
+  },
+  "generated_at": "2026-07-09T21:30:00"
+}

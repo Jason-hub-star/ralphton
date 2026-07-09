@@ -1,0 +1,193 @@
+{
+  "paper": {
+    "path": "examples/freeform-paper.md",
+    "title": "Adaptive Retry Budgets for Tool-Using Agents"
+  },
+  "mode": "llm",
+  "degraded": false,
+  "claims": [
+    {
+      "id": "C1",
+      "text": "Tool-using language agents spend a large fraction of their token budget retrying after transient tool failures.",
+      "evidence_refs": [
+        "E1"
+      ],
+      "evidence_status": "weak",
+      "rationale": "The paper asserts this but does not present data or quantitative evidence supporting the magnitude of wasted tokens."
+    },
+    {
+      "id": "C2",
+      "text": "The proposed adaptive retry budget reallocates retry tokens from stable tools to flaky tools at runtime using per-tool failure-rate tracking and a shared retry pool, while keeping the global retry ceiling unchanged and running in constant time per call.",
+      "evidence_refs": [
+        "E2",
+        "E4",
+        "E5",
+        "E6",
+        "E7"
+      ],
+      "evidence_status": "supported",
+      "rationale": "Multiple sentences describe the mechanism and its properties, including how failure rates are tracked, how budgets are reallocated, and that the reallocation step is constant time per call."
+    },
+    {
+      "id": "C3",
+      "text": "On the internal harness, the adaptive retry budget reduces wasted retry tokens by about 41% compared to a fixed three-retry baseline while maintaining the same task success rate of 23 out of 25 fixtures.",
+      "evidence_refs": [
+        "E3",
+        "E9",
+        "E10"
+      ],
+      "evidence_status": "supported",
+      "rationale": "Both the abstract and results sections report a 41% reduction in wasted retry tokens and equal task success (23/25) relative to the fixed policy baseline."
+    },
+    {
+      "id": "C4",
+      "text": "The controller has a simple, lightweight implementation: 180 lines of Python with no external dependencies, and it includes a replay harness for offline evaluation.",
+      "evidence_refs": [
+        "E8"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The implementation details are directly stated, including code size, lack of dependencies, and the presence of a replay harness."
+    },
+    {
+      "id": "C5",
+      "text": "The empirical evaluation of the adaptive retry budget is based on 25 recorded agent sessions.",
+      "evidence_refs": [
+        "E9"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The results section explicitly states that the comparison is run across 25 recorded agent sessions."
+    },
+    {
+      "id": "C6",
+      "text": "The same adaptive retry controller might transfer to multi-agent settings, but this has not yet been tested and would require additional experiments, including evaluation of latency under bursty failure patterns.",
+      "evidence_refs": [
+        "E11",
+        "E12"
+      ],
+      "evidence_status": "needs_experiment",
+      "rationale": "The paper expresses belief about transfer to multi-agent settings while explicitly stating that no live multi-agent tests have been run and that latency under bursty failures was not evaluated."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "text": "Tool-using language agents waste a large share of their token budget on retries after transient tool failures."
+    },
+    {
+      "id": "E2",
+      "text": "We propose an adaptive retry budget that reallocates retry tokens from stable tools to flaky tools at runtime."
+    },
+    {
+      "id": "E3",
+      "text": "On our internal harness the adaptive budget reduces wasted retry tokens by 41% compared with a fixed three-retry policy, while task success stays at 23 out of 25 fixtures."
+    },
+    {
+      "id": "E4",
+      "text": "The controller tracks a per-tool failure rate over a sliding window of 50 calls."
+    },
+    {
+      "id": "E5",
+      "text": "Tools whose failure rate stays under 2% surrender half of their retry budget to a shared pool."
+    },
+    {
+      "id": "E6",
+      "text": "Flaky tools draw from the shared pool first, so the global retry ceiling is unchanged."
+    },
+    {
+      "id": "E7",
+      "text": "The reallocation step runs in constant time per call."
+    },
+    {
+      "id": "E8",
+      "text": "The controller is 180 lines of Python with no external dependencies and ships with a replay harness for offline evaluation."
+    },
+    {
+      "id": "E9",
+      "text": "Across 25 recorded agent sessions, the adaptive budget reduces wasted retry tokens by 41% relative to the fixed policy baseline."
+    },
+    {
+      "id": "E10",
+      "text": "Task success is 23 out of 25 fixtures for both policies."
+    },
+    {
+      "id": "E11",
+      "text": "We believe the same controller could transfer to multi-agent settings, although no multi-agent run has been executed yet."
+    },
+    {
+      "id": "E12",
+      "text": "The limitation section says no live multi-agent test has been run, and latency under bursty failure patterns was not evaluated."
+    }
+  ],
+  "limitations": [
+    {
+      "source_id": "E11",
+      "text": "We believe the same controller could transfer to multi-agent settings, although no multi-agent run has been executed yet."
+    },
+    {
+      "source_id": "E12",
+      "text": "The limitation section says no live multi-agent test has been run, and latency under bursty failure patterns was not evaluated."
+    }
+  ],
+  "generated_criticisms": [
+    {
+      "id": "G1",
+      "target_claim": "C1",
+      "layer": "weak",
+      "text": "The claim that tool-using language agents \"waste a large share\" of tokens on retries is not quantitatively supported, making it difficult to judge the true practical importance of the problem being addressed. The paper does not provide any empirical measurements or concrete fractions of token budgets devoted to retries, nor does it characterize how common or severe such transient tool failures are across different settings, which weakens the motivation for the proposed controller.",
+      "evidence_refs": [
+        "E1"
+      ],
+      "quote": "Tool-using language agents waste a large share of their token budget on retries after transient tool failures.",
+      "hidden_assumption": "The fraction of tokens spent on retries is large enough in typical deployments to materially impact performance and justify specialized retry-budget controllers."
+    },
+    {
+      "id": "G2",
+      "target_claim": "C3",
+      "layer": "needs_experiment",
+      "text": "The reported 41% reduction in wasted retry tokens and unchanged success rate are based on only 25 recorded agent sessions, without any statistical analysis or breakdown across tools or scenarios, leaving uncertainty about robustness and generalizability. Additional experiments with more sessions, variance estimates, and ablations (e.g., varying the window size or threshold) would be needed to establish how stable these gains are and under what conditions they hold.",
+      "evidence_refs": [
+        "E3",
+        "E9",
+        "E10"
+      ],
+      "quote": "Across 25 recorded agent sessions, the adaptive budget reduces wasted retry tokens by 41% relative to the fixed policy baseline.",
+      "hidden_assumption": "Performance on 25 recorded agent sessions is representative of broader real-world usage and sufficient to conclude a consistent 41% reduction in wasted retry tokens."
+    },
+    {
+      "id": "G3",
+      "target_claim": "C5",
+      "layer": "grounded",
+      "text": "The evaluation is limited to 25 recorded agent sessions, which is a small sample size for drawing strong conclusions about the controller\u2019s effectiveness across diverse tools and failure modes. Without more extensive experimentation or diversity of scenarios, it is unclear whether the observed improvements would persist in other environments or under more adversarial or varied failure patterns.",
+      "evidence_refs": [
+        "E9"
+      ],
+      "quote": "Across 25 recorded agent sessions, the adaptive budget reduces wasted retry tokens by 41% relative to the fixed policy baseline.",
+      "hidden_assumption": "A small set of 25 recorded sessions adequately captures the range of behaviors and failure conditions relevant to deployment scenarios."
+    },
+    {
+      "id": "G4",
+      "target_claim": "C6",
+      "layer": "needs_experiment",
+      "text": "The suggestion that the controller could transfer to multi-agent settings is speculative and not supported by any experiments, particularly given that latency under bursty failure patterns has not been evaluated. Concrete multi-agent trials and stress tests under correlated or bursty tool failures would be required to validate this extension.",
+      "evidence_refs": [
+        "E11",
+        "E12"
+      ],
+      "quote": "We believe the same controller could transfer to multi-agent settings, although no multi-agent run has been executed yet.",
+      "hidden_assumption": "The behavior of the retry-budget controller in single-agent settings will carry over to multi-agent systems without introducing new failure modes, interactions, or latency issues."
+    }
+  ],
+  "filtered_criticisms": [],
+  "selected_next_experiment": {
+    "id": "NEXT-1",
+    "from_criticism": "G2",
+    "target_claim": "C3",
+    "hypothesis": "A bounded experiment can resolve whether the paper's evidence supports C3: On the internal harness, the adaptive retry budget reduces wasted retry tokens by about 41% compared to a fixed three-retry baseline while maintaining the same task success rate of 23 out of 25 fixtures.",
+    "baseline": "Use the closest reported evidence sentence as the baseline before running the missing check.",
+    "metric": "success rate",
+    "keep_condition": "success rate reaches the stated target 41% without introducing a new contradiction.",
+    "discard_condition": "success rate remains below 41% or the run cannot be reproduced.",
+    "verify": "Run the smallest saved fixture that directly targets C3 and attach the run artifact."
+  },
+  "generated_at": "2026-07-09T21:42:32"
+}

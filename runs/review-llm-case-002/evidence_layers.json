@@ -1,0 +1,155 @@
+{
+  "paper": {
+    "path": "fixtures-real/case-002/paper.md",
+    "title": "Review Patch Planner for Paper Revision Loops"
+  },
+  "mode": "llm",
+  "degraded": false,
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The planner converts 34 of 40 reviewer comments into patch-sized revision tasks.",
+      "evidence_refs": [
+        "E1",
+        "E4"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The claim explicitly matches the reported numbers about conversion of reviewer comments into patch-sized tasks in both the Claims and Evidence sections."
+    },
+    {
+      "id": "C2",
+      "text": "The unsupported-request filter rejects 9 of 10 off-scope review comments.",
+      "evidence_refs": [
+        "E2",
+        "E5"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The claim is directly supported by the numerical results reported in both the Claims and Evidence sections about the filter\u2019s rejection rate."
+    },
+    {
+      "id": "C3",
+      "text": "The planner may reduce author revision time, but this has not been validated because no timed author study or human timing evidence is available.",
+      "evidence_refs": [
+        "E3",
+        "E6",
+        "E8"
+      ],
+      "evidence_status": "needs_experiment",
+      "rationale": "The authors only suggest a possible reduction in author revision time and explicitly state that no timed author study has been run and that human timing evidence is absent, so further experiments are needed."
+    },
+    {
+      "id": "C4",
+      "text": "The current evaluation of the planner is conducted using synthetic reviewer comments and saved paper drafts rather than live human interactions.",
+      "evidence_refs": [
+        "E7"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The paper explicitly states the nature of the current evaluation setup involving synthetic reviewer comments and saved drafts."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "text": "1. The planner converts 34 of 40 reviewer comments into patch-sized revision tasks."
+    },
+    {
+      "id": "E2",
+      "text": "2. The unsupported-request filter rejects 9 of 10 off-scope review comments."
+    },
+    {
+      "id": "E3",
+      "text": "3. The paper suggests the planner may reduce author revision time, but no timed author study has been run."
+    },
+    {
+      "id": "E4",
+      "text": "The revision table reports 34 patch-sized tasks from 40 reviewer comments."
+    },
+    {
+      "id": "E5",
+      "text": "The filter audit reports 9 rejected off-scope review comments out of 10 unsupported requests."
+    },
+    {
+      "id": "E6",
+      "text": "The discussion says no timed author study has been run."
+    },
+    {
+      "id": "E7",
+      "text": "The current evaluation uses synthetic reviewer comments and saved paper drafts."
+    },
+    {
+      "id": "E8",
+      "text": "Human timing evidence is absent."
+    }
+  ],
+  "limitations": [
+    {
+      "source_id": "E3",
+      "text": "3. The paper suggests the planner may reduce author revision time, but no timed author study has been run."
+    },
+    {
+      "source_id": "E6",
+      "text": "The discussion says no timed author study has been run."
+    },
+    {
+      "source_id": "E7",
+      "text": "The current evaluation uses synthetic reviewer comments and saved paper drafts."
+    },
+    {
+      "source_id": "E8",
+      "text": "Human timing evidence is absent."
+    }
+  ],
+  "generated_criticisms": [
+    {
+      "id": "G2",
+      "target_claim": "C4",
+      "layer": "needs_experiment",
+      "text": "Because the evaluation relies only on synthetic reviewer comments and saved drafts, it is unclear whether the reported performance would hold under realistic, noisy reviewer feedback and live author\u2013reviewer interaction loops.",
+      "evidence_refs": [
+        "E7"
+      ],
+      "quote": "The current evaluation uses synthetic reviewer comments and saved paper drafts.",
+      "hidden_assumption": "It is assumed that synthetic reviewer comments and archived drafts faithfully capture the complexity and variability of real peer-review dynamics and author behavior."
+    },
+    {
+      "id": "G3",
+      "target_claim": "C1",
+      "layer": "weak",
+      "text": "The conversion rate of 34 out of 40 reviewer comments, while promising, is based on a very small sample, raising concerns about how robust or generalizable this result is across different papers, venues, and reviewer styles.",
+      "evidence_refs": [
+        "E1",
+        "E4"
+      ],
+      "quote": "The revision table reports 34 patch-sized tasks from 40 reviewer comments.",
+      "hidden_assumption": "It is assumed that a dataset of only 40 reviewer comments is large and diverse enough to provide a stable estimate of the planner\u2019s conversion performance."
+    }
+  ],
+  "filtered_criticisms": [
+    {
+      "id": "G1",
+      "target_claim": "C3",
+      "layer": "off_scope",
+      "text": "The claim that the planner may reduce author revision time is purely speculative at this stage, since the paper explicitly acknowledges the absence of any timed author study or human timing evidence, leaving the core claimed benefit unvalidated.",
+      "evidence_refs": [
+        "E3",
+        "E6",
+        "E8"
+      ],
+      "quote": "The paper suggests the planner may reduce author revision time, but no timed author study has been run.",
+      "hidden_assumption": "It is assumed that the structural improvements in how revision tasks are organized will reliably translate into measurable reductions in real authors\u2019 revision time without direct timing studies.",
+      "filter_reason": "off_scope: This criticism largely restates a limitation the authors already acknowledge: the abstract and evidence explicitly note that \"The paper suggests the planner may reduce author revision time, but no timed author study has been run,\" and the limitations say \"Human timing evidence is absent.\" The criticism does not introduce a new check or specific evaluative requirement beyond the already admitted absence of timing studies, so it should be dropped per the instructions."
+    }
+  ],
+  "selected_next_experiment": {
+    "id": "NEXT-1",
+    "from_criticism": "G2",
+    "target_claim": "C4",
+    "hypothesis": "A bounded experiment can resolve whether the paper's evidence supports C4: The current evaluation of the planner is conducted using synthetic reviewer comments and saved paper drafts rather than live human interactions.",
+    "baseline": "Use the closest reported evidence sentence as the baseline before running the missing check.",
+    "metric": "claim-specific pass rate",
+    "keep_condition": "claim-specific pass rate passes on a held-out fixture and the evidence can be reproduced from saved artifacts.",
+    "discard_condition": "claim-specific pass rate fails on the held-out fixture or requires evidence not present in the paper artifacts.",
+    "verify": "Run the smallest saved fixture that directly targets C4 and attach the run artifact."
+  },
+  "generated_at": "2026-07-09T21:37:49"
+}

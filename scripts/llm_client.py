@@ -22,7 +22,10 @@ DEFAULT_ANTHROPIC_MODEL = "claude-opus-4-8"
 # ponytail: OpenAI path is the event-day escape hatch; model name must be
 # confirmed against the credits handed out at the venue (LLM_MODEL env).
 DEFAULT_OPENAI_MODEL = "gpt-5.1"
-MAX_TOKENS = 16000
+ANTHROPIC_MAX_TOKENS = 16000
+# Reasoning models spend max_completion_tokens on reasoning too — leave
+# headroom so the JSON payload is never truncated mid-string.
+OPENAI_MAX_TOKENS = 32000
 
 
 def complete_json(system_cached: str, user: str, schema: dict) -> dict:
@@ -42,7 +45,7 @@ def _anthropic_json(system_cached: str, user: str, schema: dict) -> dict:
     try:
         response = client.messages.create(
             model=os.environ.get("LLM_MODEL", DEFAULT_ANTHROPIC_MODEL),
-            max_tokens=MAX_TOKENS,
+            max_tokens=ANTHROPIC_MAX_TOKENS,
             thinking={"type": "adaptive"},
             system=[
                 {
@@ -71,7 +74,8 @@ def _openai_json(system_cached: str, user: str, schema: dict) -> dict:
     client = OpenAI()
     response = client.chat.completions.create(
         model=os.environ.get("LLM_MODEL", DEFAULT_OPENAI_MODEL),
-        max_completion_tokens=MAX_TOKENS,
+        max_completion_tokens=OPENAI_MAX_TOKENS,
+        reasoning_effort=os.environ.get("LLM_REASONING_EFFORT", "low"),
         response_format={
             "type": "json_schema",
             "json_schema": {"name": "result", "schema": schema, "strict": True},

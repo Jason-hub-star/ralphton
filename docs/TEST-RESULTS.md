@@ -23,10 +23,35 @@ The generator is now LLM brain + deterministic guards:
 - Degrade path verified end to end: with no credentials,
   `runs/review-llm-001` completed as `mode=heuristic degraded=True` with the
   auth error recorded in `degraded_reason`.
-- Regression after the rewrite: `eval-real-002` all metrics 1.0000 PASS;
-  `eval-010` identical to `eval-009` baseline (layer_accuracy 1.0000,
-  target_claim_accuracy 0.9333).
-- Live LLM-path run on real fixtures: pending API credentials.
+- Regression after the rewrite: `eval-real-002`..`eval-real-006` all metrics
+  1.0000 PASS; `eval-010`/`eval-011` identical to the `eval-009` baseline
+  (layer_accuracy 1.0000, target_claim_accuracy 0.9333). `eval-011` archived.
+
+## Live LLM-Path Verification (2026-07-09, provider=openai/gpt-5.1)
+
+| run | mode | rec | claims | supported | kept | filtered | quotes verified | guard |
+|---|---|---:|---:|---:|---:|---:|---|---|
+| review-llm-case-001 | llm | 3 | 5 | 3 | 2 | 1 | 2/2 | PASS |
+| review-llm-case-002 | llm | 4 | 4 | 3 | 2 | 1 | 2/2 | PASS |
+| review-llm-case-003 | llm | 4 | 4 | 3 | 2 | 2 | 2/2 | PASS |
+| review-llm-freeform | llm | 4 | 6 | 4 | 4 | 1 | 4/4 | PASS |
+
+Read:
+
+- All four papers completed the full 3-stage LLM pipeline with the
+  hallucination guard PASS — every quoted span verified verbatim (after
+  typographic normalization) against the paper.
+- `off_scope_filtered_count` now varies per paper (1/1/2/1) — the filter is a
+  real judgment, not a fixture.
+- Scores differentiate (3 vs 4) and free-form ingestion extracts multiple
+  claims (6) where the offline path degenerates to 1.
+- The next-experiment selector prefers criticisms that target
+  `needs_experiment` claims, so the proposed experiment lands on the claim
+  the paper itself left unproven.
+- Found and fixed during live runs: quote guard rejected typographic
+  variants (curly quotes/dashes — normalization added), reasoning-token
+  truncation on the OpenAI provider (token headroom + reasoning effort knob),
+  double-numbered questions, and experiment selection on supported claims.
 
 ## Ralph Loop Harness (2026-07-09)
 

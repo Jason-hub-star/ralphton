@@ -1,0 +1,16 @@
+{
+  "case_count": 3,
+  "claim_count_accuracy": 1.0,
+  "claim_status_accuracy": 1.0,
+  "evidence_ref_recall": 1.0,
+  "evidence_ref_precision": 1.0,
+  "limitation_recall": 1.0,
+  "selected_target_accuracy": 1.0,
+  "case_verdicts": {
+    "case-001": "PASS",
+    "case-002": "PASS",
+    "case-003": "PASS"
+  },
+  "verdict": "PASS",
+  "generated_at": "2026-07-09T21:41:38"
+}

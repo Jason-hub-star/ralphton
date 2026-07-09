@@ -1,9 +1,9 @@
 # Run Summary
 
-- archived rows: 5
+- archived rows: 6
 - archive integrity: PASS
-- latest run: eval-009 @ 20260709T165936
-- best run: eval-009 @ 20260709T165936 (layer=1.0000, target=0.9333, next=1.0000)
+- latest run: eval-011 @ 20260709T214324
+- best run: eval-011 @ 20260709T214324 (layer=1.0000, target=0.9333, next=1.0000)
 - next action: Improve target-claim mapping or add constrained extraction.
 
 ## Recent Trend

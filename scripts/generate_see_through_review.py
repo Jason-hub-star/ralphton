@@ -95,8 +95,22 @@ def normalize_ws(text: str) -> str:
     return " ".join(text.split())
 
 
+def normalize_quote(text: str) -> str:
+    """Typographic normalization only — paraphrase must still fail."""
+    for src, dst in (
+        ("“", '"'),
+        ("”", '"'),
+        ("‘", "'"),
+        ("’", "'"),
+        ("–", "-"),
+        ("—", "-"),
+    ):
+        text = text.replace(src, dst)
+    return " ".join(text.split()).strip("\"'` ").lower()
+
+
 def quote_in_paper(quote: str, paper: str) -> bool:
-    return bool(quote.strip()) and normalize_ws(quote) in normalize_ws(paper)
+    return bool(quote.strip()) and normalize_quote(quote) in normalize_quote(paper)
 
 
 def section(text: str, heading: str) -> str:
@@ -350,9 +364,11 @@ STAGE1_INSTRUCTIONS = """Extract the paper's core structure.
   evidence for it, "needs_experiment" when the claim is prospective or an
   explicit limitation blocks it, "weak" when no direct evidence exists.
   evidence_indexes are 0-based indexes into your evidence array.
-- evidence: verbatim sentences from the paper that carry results, numbers,
-  comparisons, or explicit limitations. Copy them exactly.
-- limitations: verbatim sentences stating limitations or missing work.
+- evidence: sentences from the paper that carry results, numbers,
+  comparisons, or explicit limitations. Copy each one character-for-character
+  from the paper text — no paraphrase, no ellipses, no merged sentences.
+- limitations: sentences stating limitations or missing work, copied
+  character-for-character.
 Return JSON only."""
 
 STAGE1_SCHEMA = {
@@ -401,12 +417,16 @@ STAGE2_INSTRUCTIONS_TEMPLATE = """Here are the extracted claims and evidence (JS
 Write the review body.
 - summary: 2-4 sentences describing what the paper does and finds.
 - criticisms: 1 to 4 weaknesses. Each must reference one target_claim id,
-  cite evidence_refs (E-ids), include a verbatim quote from the paper that
-  the criticism rests on, name the hidden_assumption, and set layer:
+  cite evidence_refs (E-ids), name the hidden_assumption, and include quote:
+  ONE complete sentence copied character-for-character from the paper text
+  that the criticism rests on — no paraphrase, no ellipses, no stitching two
+  sentences together. Set layer:
   "grounded" (direct contradiction/gap in the paper), "needs_experiment"
   (resolvable by one bounded experiment), "weak" (soft concern), or
   "off_scope" (would require work outside the paper's scope — these are
   filtered out, so use it for criticisms you considered and rejected).
+  If any claim has status "needs_experiment", at least one criticism must
+  target that claim, normally with layer "needs_experiment".
 - prior_works: 1-3 sentences on how the paper relates to prior work,
   based only on what the paper itself cites or states. If the paper cites
   nothing, say so.
@@ -516,10 +536,23 @@ def guard_stage1(payload: dict, paper: str) -> list[str]:
     return problems
 
 
-def guard_stage2(payload: dict, paper: str, claim_ids: set[str], evidence_ids: set[str]) -> list[str]:
+def guard_stage2(
+    payload: dict,
+    paper: str,
+    claim_ids: set[str],
+    evidence_ids: set[str],
+    needs_experiment_ids: set[str],
+) -> list[str]:
     problems = []
     if not payload["criticisms"]:
         problems.append("at least one criticism is required")
+    if needs_experiment_ids and not any(
+        item["target_claim"] in needs_experiment_ids for item in payload["criticisms"]
+    ):
+        problems.append(
+            "claims with status needs_experiment "
+            f"({', '.join(sorted(needs_experiment_ids))}) exist, but no criticism targets any of them"
+        )
     for index, item in enumerate(payload["criticisms"]):
         if item["target_claim"] not in claim_ids:
             problems.append(f"criticisms[{index}] targets unknown claim {item['target_claim']}")
@@ -566,10 +599,11 @@ def llm_pipeline(paper: str) -> dict[str, Any]:
     layers_json = json.dumps({"claims": claims, "evidence": evidence}, indent=2)
     claim_ids = {claim["id"] for claim in claims}
     evidence_ids = {item["id"] for item in evidence}
+    needs_experiment_ids = {claim["id"] for claim in claims if claim["evidence_status"] == "needs_experiment"}
     stage2 = _run_stage(
         call(STAGE2_SCHEMA),
         STAGE2_INSTRUCTIONS_TEMPLATE.format(layers=layers_json),
-        lambda p: guard_stage2(p, paper, claim_ids, evidence_ids),
+        lambda p: guard_stage2(p, paper, claim_ids, evidence_ids, needs_experiment_ids),
     )
 
     criticisms = [
@@ -642,7 +676,20 @@ def evidence_text_for_refs(refs: list[str], evidence: list[dict[str, str]]) -> s
 
 
 def selected_experiment(criticisms: list[dict[str, Any]], claims: list[dict[str, Any]]) -> dict[str, str]:
-    selected = next((item for item in criticisms if item["layer"] == "needs_experiment"), criticisms[0])
+    needs_claims = {claim["id"] for claim in claims if claim["evidence_status"] == "needs_experiment"}
+
+    def rank(item: dict[str, Any]) -> int:
+        layer_needs = item["layer"] == "needs_experiment"
+        claim_needs = item["target_claim"] in needs_claims
+        if layer_needs and claim_needs:
+            return 0
+        if layer_needs:
+            return 1
+        if claim_needs:
+            return 2
+        return 3
+
+    selected = min(criticisms, key=lambda item: (rank(item), criticisms.index(item)))
     claim_text = next(claim["text"] for claim in claims if claim["id"] == selected["target_claim"])
     metric = infer_metric(claim_text)
     target = extract_percent(claim_text) or extract_fraction(claim_text)
@@ -757,7 +804,10 @@ def render_review(
     if not weakness_lines:
         weakness_lines.append("- No grounded weakness survived the off-scope filter.")
 
-    question_lines = [f"{index}. {question}" for index, question in enumerate(extras.get("questions", []), start=1)]
+    question_lines = [
+        f"{index}. {re.sub(r'^\s*\d+[.)]\s*', '', question)}"
+        for index, question in enumerate(extras.get("questions", []), start=1)
+    ]
     next_index = len(question_lines) + 1
     question_lines.append(
         f"{next_index}. For {experiment['target_claim']}, can the authors run the smallest saved fixture "

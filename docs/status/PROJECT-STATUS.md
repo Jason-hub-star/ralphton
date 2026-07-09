@@ -7,9 +7,9 @@
 - Generator is two-layer: LLM brain (extract -> criticize -> self-review, via `scripts/llm_client.py`) + deterministic guards (verbatim-quote check, evidence-ref check, off-scope partition, rubric-anchored 1-5 scoring). `--offline` forces the heuristic path; guard failure or missing credentials degrades to it with `"degraded": true`.
 - Hardcoded off-scope filler is gone; `filtered_criticisms` is a real per-paper partition.
 - Ralph loop harness: `PROMPT.md` + `TASKS.md` + `loop.sh` (runner-neutral, promise tags, deterministic gates as judge).
-- Latest regression runs after the rewrite: `eval-real-002` (PASS, all 1.0000), `eval-010` (baseline preserved).
-- Live LLM-path verification: pending API credentials.
-- Track 1-style extraction eval: `eval-real-002`.
+- Latest regression runs after the rewrite: `eval-real-006` (PASS, all 1.0000), `eval-011` (baseline preserved, archived).
+- Live LLM-path verification complete on provider=openai (`gpt-5.1`): 4/4 papers `mode=llm`, guard PASS, quotes 100% verbatim-verified, scores differentiated, free-form paper extracted 6 claims.
+- Track 1-style extraction eval: `eval-real-006`.
 - Confirmed paper intake path: `docs/REAL-PAPER-INTAKE.md`.
 - Latest archived harness run: `eval-009 @ 20260709T165936`.
 - Current archive pointer: `runs/current/eval-009.txt`.
@@ -64,11 +64,11 @@ Track 1-style extraction eval, from `runs/eval-real-001/metrics.json`:
 
 ## Known Weaknesses
 
-- The LLM path has not run live yet (no API credentials in the dev environment); only the degrade path is verified end to end.
+- The Anthropic provider branch is untested live (dev environment only has an OpenAI key); the OpenAI branch is verified.
 - The offline heuristic path still degenerates on free-form papers (abstract becomes a single claim); free-form ingestion is an LLM-path feature.
-- `fixtures-real/` are local surrogate papers, not confirmed original Ralphthon Track 1 submissions, and all three share the same claim profile (2/3 supported), so they cannot demonstrate score differentiation by themselves.
+- LLM extraction is nondeterministic across runs (claim count/ids vary run to run); the deterministic guards bound quality, not identity.
+- `fixtures-real/` are local surrogate papers, not confirmed original Ralphthon Track 1 submissions.
 - Internal harness `target_claim_accuracy` remains `0.9333`, mostly from lexical claim matching.
-- The OpenAI provider branch in `scripts/llm_client.py` is untested; its default model name must be confirmed at the event.
 - Mutable `runs/<run-id>/` remains useful for latest local inspection, while archived eval runs are the evidence source of record.
 
 ## Next Loop
