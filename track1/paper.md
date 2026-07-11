@@ -23,7 +23,8 @@ selection, while broader paper domains and adversarial reviews remain untested.
 2. On the same archived harness, Review See-Through selected the target claim with 1.0 accuracy and caught off-scope criticisms at a 1.0 rate.
 3. On the archived harness, the see-through next-experiment selector reached 1.0 precision while the raw-review baseline reached 0.4 precision, giving a 0.6 absolute gain.
 4. On the three-case real extraction evaluation, the system achieved 1.0 claim-status accuracy, 1.0 evidence-reference recall, and 1.0 evidence-reference precision.
-5. Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases (needs experiment).
+5. Because the three-case extraction evaluation also measured 1.0 limitation recall and 1.0 selected-target accuracy, Review See-Through improves downstream author revision quality.
+6. Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases (needs experiment).
 
 ## Evidence
 
@@ -42,6 +43,8 @@ the exact numeric values present in those JSON records.
 | 4 | claim_status_accuracy | 1.0 | runs/eval-real-001/metrics.json#claim_status_accuracy |
 | 4 | evidence_ref_recall | 1.0 | runs/eval-real-001/metrics.json#evidence_ref_recall |
 | 4 | evidence_ref_precision | 1.0 | runs/eval-real-001/metrics.json#evidence_ref_precision |
+| 5 | limitation_recall | 1.0 | runs/eval-real-001/metrics.json#limitation_recall |
+| 5 | selected_target_accuracy | 1.0 | runs/eval-real-001/metrics.json#selected_target_accuracy |
 
 ## Limitations
 
