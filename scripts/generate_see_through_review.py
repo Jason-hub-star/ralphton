@@ -84,10 +84,13 @@ ETHICAL_KEYWORDS = [
 
 
 def tokens(text: str) -> set[str]:
+    # ponytail: Hangul matches at the eojeol level (particles still attached),
+    # so Korean overlap is coarser than English; upgrade path is char bigrams.
     return {
         word
-        for word in re.findall(r"[a-z0-9]+", text.lower())
-        if len(word) > 2 and word not in STOPWORDS
+        for word in re.findall(r"[a-z0-9가-힣]+", text.lower())
+        if (len(word) > 2 if word.isascii() else len(word) > 1)
+        and word not in STOPWORDS
     }
 
 

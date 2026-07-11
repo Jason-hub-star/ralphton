@@ -51,6 +51,11 @@ def draft_labels(paper_path: Path) -> dict[str, Any]:
 def prepare(papers: list[Path], output: Path, limit: int, overwrite: bool, dry_run: bool) -> list[str]:
     lines = []
     selected = papers[:limit]
+    missing = [str(paper) for paper in selected if not paper.is_file()]
+    if missing:
+        raise FileNotFoundError(
+            "paper file(s) not found (unmatched glob?): " + ", ".join(missing)
+        )
     for index, paper in enumerate(selected, start=1):
         case_dir = output / f"case-{index:03d}"
         lines.append(f"{paper} -> {case_dir}")

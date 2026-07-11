@@ -8,9 +8,10 @@ arrive.
   stage draft labels with
   `python3 scripts/prepare_real_paper_intake.py papers/incoming/*.md --output fixtures-real-pending`
 - [ ] Generate a review for the first incoming paper:
-  `python3 scripts/generate_see_through_review.py --paper papers/incoming/<paper>.md --run-id review-event-001`
-  (gate: verdict PASS, hallucination guard PASS, not degraded)
-- [ ] Generate reviews for the remaining incoming papers
+  `bash scripts/event_review.sh papers/incoming/<paper>.md review-event-001`
+  (the wrapper loads credentials, forces `LLM_PROVIDER=openai`, and exits
+  nonzero unless verdict PASS, hallucination guard PASS, and not degraded)
+- [ ] Generate reviews for the remaining incoming papers with the same wrapper
   (`review-event-002`, `review-event-003`, ...)
 - [ ] Self-verify: run the internal audit harness against the generated
   reviews and archive the evidence

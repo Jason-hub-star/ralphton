@@ -37,6 +37,10 @@ for i in $(seq 1 "$MAX_ITER"); do
     echo "[loop] BLOCKED at iteration $i — see $LOG"
     exit 1
   fi
+  if ! grep -q "<promise>" "$LOG"; then
+    echo "[loop] no promise tag at iteration $i — runner failed or crashed. See $LOG"
+    exit 1
+  fi
 done
 
 echo "[loop] max iterations ($MAX_ITER) reached without COMPLETE. Logs: $LOG_DIR"
