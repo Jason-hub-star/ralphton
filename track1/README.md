@@ -15,9 +15,11 @@ RALPH_PROMPT=track1/PROMPT.md caffeinate -is bash loop.sh --max-iterations 8
 
 - New topic: edit only the Topic block and task list in `track1/TASKS.md`;
   the contract and judges stay unchanged. Use fresh run-ids in the new tasks
-  (e.g. `track1-event-001`, `track1-gate-e01`) so the rehearsal artifacts
-  under `runs/track1-*` are not overwritten; `start.sh` refuses to launch
-  while every task is still checked from the rehearsal.
+  so the rehearsal artifacts under `runs/track1-*` are not overwritten;
+  `start.sh` refuses to launch while every task is still checked from the
+  rehearsal. Naming trap: metrics the paper will CITE must live outside
+  `runs/track1*` (the gate rejects those sources as self-written), so name
+  experiment runs like `t1exp-...`; review/gate run-ids are unrestricted.
 - Do NOT run this loop and the root Track 2 loop at the same time — both
   commit with `git add -A` in one working tree. Run them sequentially.
 
