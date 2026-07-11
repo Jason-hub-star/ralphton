@@ -64,6 +64,7 @@ Track 1-style extraction eval, from `runs/eval-real-001/metrics.json`:
 - The author-facing output includes one next experiment.
 - The older review-audit evaluator still checks layer accuracy, target-claim mapping, off-scope filtering, and next-experiment selection.
 - `--archive` preserves immutable harness evidence under `runs/archive/`.
+- The Track 1 harness (`track1/`, `RALPH_PROMPT=track1/PROMPT.md`) runs the same loop to WRITE a paper: a deterministic gate verifies every cited number against `runs/` ground truth, the Track 2 agent self-reviews it with a recommendation threshold, and the review's next experiment seeds the next cycle (`track1/NEXT.md`). Rehearsed end to end 2026-07-11.
 
 ## Known Weaknesses
 

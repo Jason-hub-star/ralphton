@@ -63,6 +63,18 @@ Self-review recommendations:
 | track1-review-001 | llm | false | PASS | 3 |
 | track1-review-002 | llm | false | PASS | 4 |
 
+Found and fixed by this rehearsal: the scorecard verdict conflated "all draft
+criticisms judged off-scope" with "pipeline produced nothing". The honest
+revision after `track1-review-001` left no grounded weakness — all three
+drafts were filtered — and the review failed its own verdict despite guard
+PASS and recommendation 4. `generate_see_through_review.py` now passes a
+review whose drafts were all legitimately filtered and fails only when
+nothing was drafted; both Track 2 regression gates re-verified at baseline
+after the fix. The closed loop (paper gate → self-review → revision →
+next-experiment seed in `track1/NEXT.md`) completed end to end, and every
+number in `track1/paper.md` is verified against archived ground truth
+(12/12 evidence rows).
+
 ## Two-Layer Generator (2026-07-09)
 
 The generator is now LLM brain + deterministic guards:
