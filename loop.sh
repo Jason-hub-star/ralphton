@@ -58,6 +58,7 @@ elif [ -f "$RUNNERS_FILE" ]; then
 else
   printf 'claude -p\n' > "$ACTIVE"
 fi
+echo "[loop] contract: $PROMPT_FILE"
 echo "[loop] runner chain ($(grep -c '' "$ACTIVE")):"
 sed 's/^/[loop]   /' "$ACTIVE"
 
