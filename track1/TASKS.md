@@ -20,7 +20,7 @@ new topic needs fresh measurements, add a first task that produces
 One task per loop iteration, top-down. Mark `[x]` only after the gates in
 `track1/PROMPT.md` pass.
 
-- [ ] Draft `track1/paper.md` per the paper spec in `track1/PROMPT.md`
+- [x] Draft `track1/paper.md` per the paper spec in `track1/PROMPT.md`
   (5 required sections; evidence table with `path#key` sources; at least one
   `(needs experiment)` claim). Gate:
   `python3 scripts/evaluate_track1_paper.py track1/paper.md --run-id track1-gate-001`
