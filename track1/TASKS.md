@@ -33,7 +33,7 @@ One task per loop iteration, top-down. Mark `[x]` only after the gates in
   where `<rec>` is the overall_recommendation from
   `runs/track1-review-001/review_scorecard.json` (the revision must not score
   lower).
-- [ ] Closed loop: summarize `runs/track1-review-002/author_next_experiment.yaml`
+- [x] Closed loop: summarize `runs/track1-review-002/author_next_experiment.yaml`
   into `track1/NEXT.md` — what to run in the next loop cycle, the expected
   metric, and the keep/discard condition. No gate script for this task: the
   file must exist, be non-empty, and name the metric.
