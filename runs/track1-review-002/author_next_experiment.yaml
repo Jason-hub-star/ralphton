@@ -1,7 +1,7 @@
 id: "NEXT-1"
 from_criticism: "G3"
 target_claim: "C6"
-hypothesis: "A bounded experiment can resolve whether the paper's evidence supports C6: The authors hypothesize that Review See-Through will maintain at least 0.9 next-experiment precision on a larger, cross-domain set of at least 20 cases, but this remains untested and requires a dedicated experiment."
+hypothesis: "A bounded experiment can resolve whether the paper's evidence supports C6: Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases."
 baseline: "Use the closest reported evidence sentence as the baseline before running the missing check."
 metric: "claim-specific pass rate"
 keep_condition: "claim-specific pass rate passes on a held-out fixture and the evidence can be reproduced from saved artifacts."

@@ -26,7 +26,7 @@ One task per loop iteration, top-down. Mark `[x]` only after the gates in
   `python3 scripts/evaluate_track1_paper.py track1/paper.md --run-id track1-gate-001`
 - [x] Self-review the paper with the Track 2 review agent:
   `bash scripts/track1_selfreview.sh track1/paper.md track1-review-001 3`
-- [ ] Revise: read `runs/track1-review-001/generated_review.md`, address the
+- [x] Revise: read `runs/track1-review-001/generated_review.md`, address the
   single most important weakness in `track1/paper.md`, then re-pass BOTH
   gates: `python3 scripts/evaluate_track1_paper.py track1/paper.md --run-id track1-gate-002`
   and `bash scripts/track1_selfreview.sh track1/paper.md track1-review-002 <rec>`

@@ -1,29 +1,29 @@
 # ICML-Style Review: Review See-Through: Transparent Evidence Layers for Paper Review Agents
 
 ## Summary
-The paper introduces Review See-Through, a review agent that decomposes reviewer comments into evidence layers before suggesting next experiments. Using a five-case archived harness, it reports perfect layer classification, target-claim selection, and off-scope detection, as well as a large precision gain in next-experiment suggestions over a raw-review baseline. A separate three-case extraction evaluation shows perfect performance on several parser-facing metrics, including claim status, evidence references, limitations, and selected targets. The authors emphasize that broader domains, adversarial settings, and a larger cross-domain precision claim remain untested.
+The paper introduces Review See-Through, a review agent that decomposes reviewer comments into evidence layers and then selects concrete next experiments for authors. Using a five-case archived harness, it reports perfect (1.0) performance on layer classification, target-claim selection, and off-scope detection, as well as a large precision gain in next-experiment selection over a raw-review baseline. A separate three-case extraction evaluation shows perfect accuracy/recall/precision on several parser-facing metrics, including claim status, evidence references, limitations, and selected targets. The authors explicitly position their contributions as a narrow, harness-based validation and leave cross-domain generalization and downstream author revision quality as future work.
 
 ## Claims and Evidence
 Each central claim, its substantiation status, and the verbatim evidence it rests on:
-- C1 — Supported (E1, E5): On the archived five-case harness, Review See-Through classified review evidence layers perfectly (1.0 layer accuracy across 15 criticisms).
+- C1 — Supported (E1, E5): On the archived five-case harness, Review See-Through classified review evidence layers with perfect (1.0) layer accuracy across 15 criticisms.
   - E1: "In the archived five-case harness, the layer classifier reached 1.0 layer accuracy, 1.0 target-claim accuracy, and 1.0 off-scope catch rate across 15 criticisms."
   - E5: "1. On the archived five-case harness, Review See-Through classified review evidence layers with 1.0 layer accuracy across 15 criticisms."
-- C2 — Supported (E1, E6): On the same archived harness, Review See-Through perfectly selected the target claim and caught all off-scope criticisms (1.0 accuracy and 1.0 off-scope catch rate).
+- C2 — Supported (E1, E6): On the same archived harness, Review See-Through selected the target claim with perfect (1.0) accuracy and caught all off-scope criticisms (1.0 catch rate).
   - E1: "In the archived five-case harness, the layer classifier reached 1.0 layer accuracy, 1.0 target-claim accuracy, and 1.0 off-scope catch rate across 15 criticisms."
   - E6: "2. On the same archived harness, Review See-Through selected the target claim with 1.0 accuracy and caught off-scope criticisms at a 1.0 rate."
-- C3 — Supported (E2, E7): On the archived harness, the see-through next-experiment selector achieved 1.0 precision versus 0.4 for the raw-review baseline, for a 0.6 absolute precision gain.
+- C3 — Supported (E2, E7, E11): On the archived harness, the see-through next-experiment selector achieved 1.0 precision versus 0.4 for the raw-review baseline, an absolute gain of 0.6.
   - E2: "The same harness measured 1.0 precision for the see-through next-experiment selector versus 0.4 for the raw review baseline, a 0.6 absolute gain."
   - E7: "3. On the archived harness, the see-through next-experiment selector reached 1.0 precision while the raw-review baseline reached 0.4 precision, giving a 0.6 absolute gain."
-- C4 — Supported (E3, E8): On a three-case real extraction evaluation, the system achieved perfect claim-status accuracy and perfect evidence-reference recall and precision.
+  - E11: "- The strongest next-experiment result comes from a five-case archived harness, so the measured gain may not hold on larger or more diverse paper sets."
+- C4 — Supported (E3, E8, E9, E12): On the three-case real extraction evaluation, Review See-Through achieved perfect (1.0) accuracy/recall/precision for claim-status, evidence references, limitations, and selected targets.
   - E3: "A separate three-case extraction evaluation measured 1.0 accuracy or recall/precision for claim counts, claim statuses, evidence references, limitations, and selected targets."
   - E8: "4. On the three-case real extraction evaluation, the system achieved 1.0 claim-status accuracy, 1.0 evidence-reference recall, and 1.0 evidence-reference precision."
-- C5 — Supported (E3, E9, E12): On the three-case real extraction evaluation, Review See-Through achieved perfect limitation recall and selected-target accuracy, but downstream author revision quality was not measured.
-  - E3: "A separate three-case extraction evaluation measured 1.0 accuracy or recall/precision for claim counts, claim statuses, evidence references, limitations, and selected targets."
-  - E9: "5. On the three-case real extraction evaluation, Review See-Through measured 1.0 limitation recall and 1.0 selected-target accuracy, but did not measure downstream author revision quality."
+  - E9: "5. On the three-case real extraction evaluation, Review See-Through achieved 1.0 limitation recall and 1.0 selected-target accuracy."
   - E12: "- The extraction evaluation covers three cases and reports parser-facing metrics rather than downstream author revision quality."
-- C6 — Partially supported (missing one bounded experiment) (E4, E10, E11, E13): The authors hypothesize that Review See-Through will maintain at least 0.9 next-experiment precision on a larger, cross-domain set of at least 20 cases, but this remains untested and requires a dedicated experiment.
-  - E4: "These results support a narrow claim: on the existing labeled harnesses, the see-through decomposition preserves review structure and improves next-experiment selection, while broader paper domains and adversarial reviews remain untested."
-  - E10: "6. Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases, which is untested by the current runs and needs a bounded experiment (needs experiment)."
+- C5 — Supported (E4): On the existing labeled harnesses, the see-through decomposition preserves review structure, selects review targets, and improves next-experiment selection.
+  - E4: "These results support a narrow claim: on the existing labeled harnesses, the see-through decomposition preserves review structure, selects review targets, and improves next-experiment selection, while downstream revision quality, broader paper domains, and adversarial reviews remain untested."
+- C6 — Partially supported (missing one bounded experiment) (E10, E11, E13): Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases.
+  - E10: "6. Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases (needs experiment)."
   - E11: "- The strongest next-experiment result comes from a five-case archived harness, so the measured gain may not hold on larger or more diverse paper sets."
   - E13: "- The untested cross-domain precision claim is intentionally marked as needing an experiment and should not be treated as established evidence."
 
@@ -31,21 +31,21 @@ Weaknesses (each linked to a claim and evidence layer):
 - No grounded weakness survived the off-scope filter.
 
 ## Relation to Prior Works
-The paper does not cite any prior work or related systems, so its relationship to existing methods for structuring reviews or recommending next experiments remains unspecified in the text. Any comparison to alternative approaches must therefore be inferred rather than grounded in explicit citations.
+The paper does not mention or cite any prior work, so its relation to existing systems for structured peer review analysis or experiment suggestion remains unspecified. As a result, it is hard to position Review See-Through relative to alternative review agents or information extraction tools that might already exist.
 
 ## Other Aspects
-- Originality: The work is original in framing paper-review assistance as a layered evidence decomposition that feeds into a next-experiment selector, with explicit quantitative evaluation on small labeled harnesses.
-- Significance: Within its narrow evaluated setting, the reported perfect metrics and large precision gain suggest that the approach could be significant for improving the structure and actionable quality of reviewer feedback, but the tiny scale and lack of broader testing constrain its current impact.
-- Clarity: The paper is clear and precise in stating its claims, metrics, and limitations, explicitly distinguishing between supported results on existing harnesses and untested prospective claims.
+- Originality: Given the absence of cited related work, the idea of explicitly decomposing reviews into evidence layers to drive next-experiment selection appears novel within the scope of what is described here, though its originality relative to the broader literature is unclear.
+- Significance: The reported metrics on small, labeled harnesses suggest potential for more reliable next-experiment suggestions, but the limited scale and lack of downstream evaluation constrain the current practical impact.
+- Clarity: The claims, metrics, and limitations are stated clearly and quantitatively, with explicit acknowledgment of the narrow evaluation scope and untested generalization claims.
 
 ## Questions for Authors
-1. For Claim C3, can you provide more detail on the five archived cases (e.g., diversity of paper topics, review styles) and any plans to replicate the next-experiment precision comparison on a substantially larger or more varied dataset to assess robustness?
-2. For Claim C5, do you have any preliminary or planned evaluations that connect the reported parser-facing metrics (e.g., limitation recall, selected-target accuracy) to measurable changes in how authors revise their papers or to expert judgments of revision quality?
-3. For Claim C6, what concrete experimental design (dataset construction, domain coverage, evaluation protocol) do you envision to test the hypothesized ≥0.9 next-experiment precision on at least 20 cross-domain cases, and how would you predefine success or failure for that prospective claim?
+1. For Claim C6 (E10, E13), can you elaborate on the planned experimental design for the larger cross-domain paper set (e.g., domains covered, sampling strategy, and annotation protocol) that would test whether the 0.9 next-experiment precision target is realistic?
+2. For the archived five-case harness underpinning Claims C1–C3 (E1, E2, E5–E7), what kinds of papers and reviews were included, and how were the criticisms and target claims selected or annotated to avoid overfitting to a very specific review style?
+3. For the broader claim about preserving review structure and improving next-experiment selection on existing harnesses (C5; E3, E4, E12), do you have plans to measure downstream author revision quality (e.g., via human studies or iterative revision experiments), and if so, what concrete metrics or protocols are you considering?
 4. For C6, can the authors run the smallest saved fixture that directly targets this claim and report claim-specific pass rate, judged against the stated keep/discard condition below?
 
 Proposed next experiment (keep/discard contract):
-- Hypothesis: A bounded experiment can resolve whether the paper's evidence supports C6: The authors hypothesize that Review See-Through will maintain at least 0.9 next-experiment precision on a larger, cross-domain set of at least 20 cases, but this remains untested and requires a dedicated experiment.
+- Hypothesis: A bounded experiment can resolve whether the paper's evidence supports C6: Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases.
 - Metric: claim-specific pass rate
 - Keep when: claim-specific pass rate passes on a held-out fixture and the evidence can be reproduced from saved artifacts.
 - Discard when: claim-specific pass rate fails on the held-out fixture or requires evidence not present in the paper artifacts.

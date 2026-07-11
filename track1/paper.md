@@ -14,8 +14,9 @@ review baseline, a 0.6 absolute gain. A separate three-case extraction
 evaluation measured 1.0 accuracy or recall/precision for claim counts, claim
 statuses, evidence references, limitations, and selected targets. These results
 support a narrow claim: on the existing labeled harnesses, the see-through
-decomposition preserves review structure and improves next-experiment
-selection, while broader paper domains and adversarial reviews remain untested.
+decomposition preserves review structure, selects review targets, and improves
+next-experiment selection, while downstream revision quality, broader paper
+domains, and adversarial reviews remain untested.
 
 ## Claims
 
@@ -23,7 +24,7 @@ selection, while broader paper domains and adversarial reviews remain untested.
 2. On the same archived harness, Review See-Through selected the target claim with 1.0 accuracy and caught off-scope criticisms at a 1.0 rate.
 3. On the archived harness, the see-through next-experiment selector reached 1.0 precision while the raw-review baseline reached 0.4 precision, giving a 0.6 absolute gain.
 4. On the three-case real extraction evaluation, the system achieved 1.0 claim-status accuracy, 1.0 evidence-reference recall, and 1.0 evidence-reference precision.
-5. Because the three-case extraction evaluation also measured 1.0 limitation recall and 1.0 selected-target accuracy, Review See-Through improves downstream author revision quality.
+5. On the three-case real extraction evaluation, Review See-Through achieved 1.0 limitation recall and 1.0 selected-target accuracy.
 6. Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases (needs experiment).
 
 ## Evidence
