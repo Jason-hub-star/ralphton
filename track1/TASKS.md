@@ -37,7 +37,7 @@ One task per loop iteration, top-down. Mark `[x]` only after the gates in
   into `track1/NEXT.md` — what to run in the next loop cycle, the expected
   metric, and the keep/discard condition. No gate script for this task: the
   file must exist, be non-empty, and name the metric.
-- [ ] Final: add a "Track 1 Harness Rehearsal" subsection to
+- [x] Final: add a "Track 1 Harness Rehearsal" subsection to
   `docs/TEST-RESULTS.md` quoting the gate scorecard lines
   (`runs/track1-gate-00*/track1_gate.log`) and both self-review
   recommendations, then commit.

@@ -44,6 +44,25 @@ in the off-scope filter, `scripts/event_review.sh` (loads credentials, forces
 `runners.conf` fallback chain (two Codex subscriptions -> Claude -> Sonnet ->
 Codex on metered API billing) with rotation and backoff in `loop.sh`.
 
+### Track 1 Harness Rehearsal
+
+Gate scorecards:
+
+```text
+[2026-07-11 21:27:44] run=track1-gate-001 paper=track1/paper.md sections=OK claims=5 needs_experiment=1 evidence_rows=10 verified=10/10 limitations=3 verdict=PASS
+[2026-07-11 21:31:24] run=track1-gate-002 paper=track1/paper.md sections=OK claims=6 needs_experiment=1 evidence_rows=12 verified=12/12 limitations=3 verdict=PASS
+[2026-07-11 21:32:45] run=track1-gate-002 paper=track1/paper.md sections=OK claims=6 needs_experiment=1 evidence_rows=12 verified=12/12 limitations=3 verdict=PASS
+[2026-07-11 21:38:18] run=track1-gate-002 paper=track1/paper.md sections=OK claims=6 needs_experiment=1 evidence_rows=12 verified=12/12 limitations=3 verdict=PASS
+[2026-07-11 21:38:25] run=track1-gate-002 paper=track1/paper.md sections=OK claims=6 needs_experiment=1 evidence_rows=12 verified=12/12 limitations=3 verdict=PASS
+```
+
+Self-review recommendations:
+
+| run | mode | degraded | verdict | overall_recommendation |
+|---|---|---|---|---:|
+| track1-review-001 | llm | false | PASS | 3 |
+| track1-review-002 | llm | false | PASS | 4 |
+
 ## Two-Layer Generator (2026-07-09)
 
 The generator is now LLM brain + deterministic guards:
