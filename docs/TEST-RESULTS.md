@@ -27,6 +27,16 @@ Found and fixed by the rehearsal:
   target the lexically matched claim) was adopted on main:
   `target_claim_accuracy` 0.9333 -> 1.0000, all other metrics at baseline.
 
+Final pre-event verification (2026-07-11 evening): all five chain runners
+live-verified (Codex gmdqn2tp — two full rehearsals; Codex umjitak — exec OK
+after login; `claude -p --dangerously-skip-permissions` — full tool cycle of
+file write + git commit + bare tag inside the loop; Sonnet flag combo; Codex
+on API-key billing — exec OK). Edge papers through the gated wrapper: a
+Korean free-form paper (6 claims, 2/2 quotes verbatim-verified, real
+off-scope partition, GATE PASS) and a 208K-char synthetic paper (mode=llm,
+GATE PASS, no truncation). Three-paper intake staged cleanly; archive
+integrity PASS.
+
 Same-day hardening for unattended runs: intake preflight (clean error on an
 unmatched glob), loop fail-fast on a missing promise tag, Hangul token support
 in the off-scope filter, `scripts/event_review.sh` (loads credentials, forces

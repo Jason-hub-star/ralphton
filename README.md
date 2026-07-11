@@ -138,7 +138,7 @@ retries up to `RALPH_RETRY_MAX` times (default 3). A `BLOCKED` tag still
 stops the loop — a task problem survives runner swaps.
 
 ```bash
-bash loop.sh --max-iterations 20          # uses the runners.conf chain
+caffeinate -is bash loop.sh --max-iterations 20   # chain from runners.conf; caffeinate blocks macOS sleep
 RALPH_RUNNER="claude -p" bash loop.sh --max-iterations 20   # single-runner override
 ```
 
