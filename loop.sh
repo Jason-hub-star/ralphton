@@ -9,6 +9,9 @@
 #   runners.conf (or RALPH_RUNNERS_FILE)           # fallback chain, one command per line
 #   default: claude -p
 #
+# Contract selection:
+#   RALPH_PROMPT=track1/PROMPT.md bash loop.sh     # alternate loop contract (default PROMPT.md)
+#
 # Codex runner line (network on for the LLM call, .git writable for commits):
 #   codex exec --sandbox workspace-write \
 #     -c sandbox_workspace_write.network_access=true \
@@ -31,6 +34,11 @@ set -u
 MAX_ITER=20
 RETRY_MAX=${RALPH_RETRY_MAX:-3}
 RETRY_WAIT=${RALPH_RETRY_WAIT:-900}
+PROMPT_FILE=${RALPH_PROMPT:-PROMPT.md}
+if [ ! -f "$PROMPT_FILE" ]; then
+  echo "prompt file not found: $PROMPT_FILE" >&2
+  exit 2
+fi
 while [ $# -gt 0 ]; do
   case "$1" in
     --max-iterations) MAX_ITER="$2"; shift 2 ;;
@@ -62,7 +70,7 @@ for i in $(seq 1 "$MAX_ITER"); do
       r=$((r+1))
       LOG="$LOG_DIR/iter-$i-a$attempt-r$r.log"
       echo "[loop] iteration $i/$MAX_ITER attempt $attempt runner $r: $RUNNER"
-      sh -c "$RUNNER" < PROMPT.md 2>&1 | tee "$LOG"
+      sh -c "$RUNNER" < "$PROMPT_FILE" 2>&1 | tee "$LOG"
       # Anchored to line start: runners like `codex exec` echo PROMPT.md
       # (which quotes the tags, indented) back into stdout; only a bare tag
       # line counts.

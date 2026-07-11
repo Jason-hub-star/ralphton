@@ -1,0 +1,157 @@
+{
+  "paper": {
+    "path": "/private/tmp/claude-501/-Users-family-jason-ralphthon-loopctl/10088891-0ef0-40b6-8e5d-6ddc895b6525/scratchpad/long-paper.md",
+    "title": "Scaling Study of Layered Review Decomposition"
+  },
+  "mode": "llm",
+  "degraded": false,
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The paper investigates review decomposition at scale.",
+      "evidence_refs": [
+        "E1"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The abstract explicitly states that the work studies review decomposition at scale, which is a descriptive claim about the paper\u2019s scope rather than a result requiring further evidence."
+    },
+    {
+      "id": "C2",
+      "text": "The proposed system achieves a layer accuracy of 1.0 on five fixture cases.",
+      "evidence_refs": [
+        "E2"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The abstract reports a concrete performance number and evaluation setting, directly supporting this claim."
+    },
+    {
+      "id": "C3",
+      "text": "The selector component improves next-experiment precision by 0.6 compared to a raw-review baseline.",
+      "evidence_refs": [
+        "E3"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The abstract gives a quantified improvement ('0.6') and names the baseline, which directly supports this comparative performance claim."
+    },
+    {
+      "id": "C4",
+      "text": "Token overlap between criticism and claim text remains stable under paraphrase perturbations across batches.",
+      "evidence_refs": [
+        "E4"
+      ],
+      "evidence_status": "supported",
+      "rationale": "Observation 1.1 explicitly states that token overlap remains stable under paraphrase perturbation; the same pattern is repeated across sections and batches, supporting a general stability claim."
+    },
+    {
+      "id": "C5",
+      "text": "Layered decomposition scales linearly with paper length in the reported experiments.",
+      "evidence_refs": [
+        "E5"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The conclusion explicitly states that layered decomposition scales linearly with paper length in their experiments, providing direct support for this scalability claim."
+    },
+    {
+      "id": "C6",
+      "text": "The pipeline has not yet been validated on a large real review corpus, which is left for future work.",
+      "evidence_refs": [
+        "E6"
+      ],
+      "evidence_status": "needs_experiment",
+      "rationale": "The limitations section explicitly notes that validation on a large real review corpus is missing and deferred to future work, so this remains unverified and requires further experimentation."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "text": "We study review decomposition at scale."
+    },
+    {
+      "id": "E2",
+      "text": "Our system achieves layer accuracy of 1.0 on five fixture cases."
+    },
+    {
+      "id": "E3",
+      "text": "We claim the selector improves next-experiment precision by 0.6 over a raw-review baseline."
+    },
+    {
+      "id": "E4",
+      "text": "Observation 1.1 shows that token overlap between criticism and claim text remains stable under paraphrase perturbation across batch 1."
+    },
+    {
+      "id": "E5",
+      "text": "Layered decomposition scales linearly with paper length in our experiments."
+    },
+    {
+      "id": "E6",
+      "text": "We have not yet validated the pipeline on a large real review corpus; this remains future work."
+    }
+  ],
+  "limitations": [
+    {
+      "source_id": "E6",
+      "text": "We have not yet validated the pipeline on a large real review corpus; this remains future work."
+    }
+  ],
+  "generated_criticisms": [
+    {
+      "id": "G1",
+      "target_claim": "C2",
+      "layer": "needs_experiment",
+      "text": "The reported performance of \"layer accuracy of 1.0 on five fixture cases\" is based on an extremely small and unspecified evaluation setup, making it hard to assess whether this result is robust or generalizable beyond a handful of hand-picked examples; additional experiments on larger and more diverse benchmarks would be needed to substantiate this performance claim.",
+      "evidence_refs": [
+        "E2"
+      ],
+      "quote": "Our system achieves layer accuracy of 1.0 on five fixture cases.",
+      "hidden_assumption": "Performance measured on five unspecified fixture cases is representative of the system\u2019s accuracy on realistic and diverse review decomposition tasks."
+    },
+    {
+      "id": "G2",
+      "target_claim": "C3",
+      "layer": "needs_experiment",
+      "text": "The paper states that the selector improves next-experiment precision by 0.6 over a raw-review baseline, but provides no accompanying description of the experimental setup, dataset, or statistical variation, so it is unclear whether this improvement is empirically demonstrated or merely asserted; a clearly described experiment would be required to validate this quantitative gain.",
+      "evidence_refs": [
+        "E3"
+      ],
+      "quote": "We claim the selector improves next-experiment precision by 0.6 over a raw-review baseline.",
+      "hidden_assumption": "The claimed 0.6 improvement in next-experiment precision is backed by a sound and reproducible experimental evaluation rather than only an unsupported assertion in the abstract."
+    },
+    {
+      "id": "G4",
+      "target_claim": "C5",
+      "layer": "weak",
+      "text": "While the conclusion claims that layered decomposition scales linearly with paper length, the paper provides no methodological details, measurements, or plots of runtime or resource usage as a function of length, so the reader cannot verify whether the observed linearity is robust, holds across implementations, or is simply based on a limited internal observation.",
+      "evidence_refs": [
+        "E5"
+      ],
+      "quote": "Layered decomposition scales linearly with paper length in our experiments.",
+      "hidden_assumption": "Informally observed linear scaling \"in our experiments\" is sufficient to conclude that the approach will scale linearly across a broad range of paper lengths and deployment environments."
+    }
+  ],
+  "filtered_criticisms": [
+    {
+      "id": "G3",
+      "target_claim": "C6",
+      "layer": "off_scope",
+      "text": "The authors explicitly acknowledge that the pipeline has not been validated on a large real review corpus, which means the external validity of their findings for real-world reviewing scenarios remains unknown and could be substantially different once such an evaluation is conducted.",
+      "evidence_refs": [
+        "E6"
+      ],
+      "quote": "We have not yet validated the pipeline on a large real review corpus; this remains future work.",
+      "hidden_assumption": "Results obtained on the current (unspecified) setup will transfer to performance on a large real review corpus without substantial degradation or qualitative change.",
+      "filter_reason": "off_scope: The criticism is essentially a restatement of the limitation the authors already acknowledge: \"We have not yet validated the pipeline on a large real review corpus; this remains future work.\" The added text only reiterates that external validity is unknown, without proposing any concrete additional check or evaluation beyond what the authors already mark as future work. By the instructions, such a criticism should be dropped."
+    }
+  ],
+  "selected_next_experiment": {
+    "id": "NEXT-1",
+    "from_criticism": "G1",
+    "target_claim": "C2",
+    "hypothesis": "A bounded experiment can resolve whether the paper's evidence supports C2: The proposed system achieves a layer accuracy of 1.0 on five fixture cases.",
+    "baseline": "Use the closest reported evidence sentence as the baseline before running the missing check.",
+    "metric": "claim-specific pass rate",
+    "keep_condition": "claim-specific pass rate passes on a held-out fixture and the evidence can be reproduced from saved artifacts.",
+    "discard_condition": "claim-specific pass rate fails on the held-out fixture or requires evidence not present in the paper artifacts.",
+    "verify": "Run the smallest saved fixture that directly targets C2 and attach the run artifact."
+  },
+  "generated_at": "2026-07-11T20:24:05"
+}

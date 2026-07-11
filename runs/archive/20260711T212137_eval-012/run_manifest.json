@@ -1,0 +1,13 @@
+{
+  "run_id": "eval-012",
+  "timestamp": "20260711T212137",
+  "fixtures": "/Users/family/jason/ralphthon-loopctl/fixtures-unseen-3",
+  "archive_path": "/Users/family/jason/ralphthon-loopctl/runs/archive/20260711T212137_eval-012",
+  "source_run_dir": "/Users/family/jason/ralphthon-loopctl/runs/eval-012",
+  "report_files": [
+    "metrics.json",
+    "confusion_matrix.md",
+    "case_table.md",
+    "scorecard.log"
+  ]
+}

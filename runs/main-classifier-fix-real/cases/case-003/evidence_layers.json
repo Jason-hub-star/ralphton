@@ -1,0 +1,82 @@
+{
+  "paper": {
+    "path": "fixtures-real/case-003/paper.md",
+    "title": "Evidence Ledger Compressor for Long Ralph Loops"
+  },
+  "mode": "heuristic",
+  "degraded": false,
+  "claims": [
+    {
+      "id": "C1",
+      "text": "The compressor reduces a 19,400-token loop log to a 1,180-token curated status page.",
+      "evidence_refs": [
+        "E1"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The claim has overlapping evidence in the paper."
+    },
+    {
+      "id": "C2",
+      "text": "The compressed status page preserves all 12 gold evidence anchors.",
+      "evidence_refs": [
+        "E2"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The claim has overlapping evidence in the paper."
+    },
+    {
+      "id": "C3",
+      "text": "The compressor should generalize to multi-agent loops with more than three agents.",
+      "evidence_refs": [
+        "E3"
+      ],
+      "evidence_status": "needs_experiment",
+      "rationale": "The claim is prospective, missing a direct run, or tied to an explicit limitation."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "text": "The token count table reports 19,400 input tokens and 1,180 output tokens for the saved loop."
+    },
+    {
+      "id": "E2",
+      "text": "The evidence-anchor audit reports 12 of 12 gold anchors preserved in the compressed status page."
+    },
+    {
+      "id": "E3",
+      "text": "No multi-agent loop with more than three agents is included in the evaluation."
+    }
+  ],
+  "limitations": [
+    {
+      "source_id": "E3",
+      "text": "No multi-agent loop with more than three agents is included in the evaluation."
+    }
+  ],
+  "generated_criticisms": [
+    {
+      "id": "G1",
+      "target_claim": "C3",
+      "layer": "needs_experiment",
+      "text": "C3 is not review-ready yet: The claim is prospective, missing a direct run, or tied to an explicit limitation. Current evidence: No multi-agent loop with more than three agents is included in the evaluation.",
+      "evidence_refs": [
+        "E3"
+      ],
+      "hidden_assumption": "The paper artifact contains enough context to run a targeted validation without redesigning the method."
+    }
+  ],
+  "filtered_criticisms": [],
+  "selected_next_experiment": {
+    "id": "NEXT-1",
+    "from_criticism": "G1",
+    "target_claim": "C3",
+    "hypothesis": "A bounded experiment can resolve whether the paper's evidence supports C3: The compressor should generalize to multi-agent loops with more than three agents.",
+    "baseline": "Use the closest reported evidence sentence as the baseline before running the missing check.",
+    "metric": "claim-specific pass rate",
+    "keep_condition": "claim-specific pass rate passes on a held-out fixture and the evidence can be reproduced from saved artifacts.",
+    "discard_condition": "claim-specific pass rate fails on the held-out fixture or requires evidence not present in the paper artifacts.",
+    "verify": "Run the smallest saved fixture that directly targets C3 and attach the run artifact."
+  },
+  "generated_at": "2026-07-11T19:59:40"
+}

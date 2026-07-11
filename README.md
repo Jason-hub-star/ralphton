@@ -142,6 +142,19 @@ caffeinate -is bash loop.sh --max-iterations 20   # chain from runners.conf; caf
 RALPH_RUNNER="claude -p" bash loop.sh --max-iterations 20   # single-runner override
 ```
 
+## Track 1 Harness
+
+The same loop can run the other Ralphthon track: `track1/` holds a
+paper-writing contract where the loop authors `track1/paper.md`, a
+deterministic gate verifies every cited number against ground truth under
+`runs/` (`scripts/evaluate_track1_paper.py`), and the Track 2 review agent
+self-reviews the paper with a recommendation threshold
+(`scripts/track1_selfreview.sh`). See `track1/README.md`.
+
+```bash
+RALPH_PROMPT=track1/PROMPT.md caffeinate -is bash loop.sh --max-iterations 8
+```
+
 ## First Test
 
 Run:

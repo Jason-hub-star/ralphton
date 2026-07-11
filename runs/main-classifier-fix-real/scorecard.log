@@ -1,0 +1,1 @@
+[2026-07-11 19:59:40] run=main-classifier-fix-real cases=3 claim_count_accuracy=1.0000 claim_status_accuracy=1.0000 evidence_ref_recall=1.0000 limitation_recall=1.0000 selected_target_accuracy=1.0000 verdict=PASS
