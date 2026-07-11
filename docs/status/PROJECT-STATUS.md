@@ -11,6 +11,9 @@
 - Live LLM-path verification complete on provider=openai (`gpt-5.1`): 4/4 papers `mode=llm`, guard PASS, quotes 100% verbatim-verified, scores differentiated, free-form paper extracted 6 claims.
 - Track 1-style extraction eval: `eval-real-006`.
 - Confirmed paper intake path: `docs/REAL-PAPER-INTAKE.md`.
+- Event-day rehearsal (2026-07-11): the full TASKS.md chain ran unattended to COMPLETE in 6 iterations on branch `rehearsal-dry-run` with a sandboxed Codex runner; `review-event-001` came out mode=llm, guard PASS, not degraded. The rehearsal exposed and fixed a false-COMPLETE tag parse in `loop.sh` and the Codex `.git` sandbox block.
+- Unattended runner fallback chain: `runners.conf` (Codex gmdqn2tp -> Codex umjitak -> `claude -p` -> Sonnet -> Codex on metered API key). No bare promise tag = reset tracked files and rotate; whole-chain failure = backoff retry (`RALPH_RETRY_WAIT`/`RALPH_RETRY_MAX`); BLOCKED still stops the loop.
+- `target_claim_accuracy` 0.9333 -> 1.0000: weak criticisms now target the lexically matched claim (1-line classifier fix adopted from the rehearsal loop's own improvement commit; all other metrics at baseline).
 - Latest archived harness run: `eval-009 @ 20260709T165936`.
 - Current archive pointer: `runs/current/eval-009.txt`.
 - Evidence ledger: `runs/index.jsonl`.
@@ -31,7 +34,7 @@ Internal harness, from the latest `fixtures-unseen-3` archived run:
 | metric | value |
 |---|---:|
 | layer_accuracy | 1.0000 |
-| target_claim_accuracy | 0.9333 |
+| target_claim_accuracy | 1.0000 |
 | off_scope_catch_rate | 1.0000 |
 | grounded_preservation_rate | 1.0000 |
 | next_experiment_precision | 1.0000 |
@@ -68,7 +71,6 @@ Track 1-style extraction eval, from `runs/eval-real-001/metrics.json`:
 - The offline heuristic path still degenerates on free-form papers (abstract becomes a single claim); free-form ingestion is an LLM-path feature.
 - LLM extraction is nondeterministic across runs (claim count/ids vary run to run); the deterministic guards bound quality, not identity.
 - `fixtures-real/` are local surrogate papers, not confirmed original Ralphthon Track 1 submissions.
-- Internal harness `target_claim_accuracy` remains `0.9333`, mostly from lexical claim matching.
 - Mutable `runs/<run-id>/` remains useful for latest local inspection, while archived eval runs are the evidence source of record.
 
 ## Next Loop

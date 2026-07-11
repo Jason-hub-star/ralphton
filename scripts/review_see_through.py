@@ -327,7 +327,7 @@ def classify_review_item(item: str, paper: str, claims: list[dict], index: int) 
         hidden_assumption = "The missing evaluation can be turned into a bounded next-loop run."
         next_action = "Run the missing evaluation or comparison named by the claim."
     else:
-        target = [claims[0]["id"]] if claims else []
+        target = [matched_claim["id"]] if matched_claim else []
         layer = "weak"
         evidence.append("No deterministic fixture rule matched this criticism.")
         hidden_assumption = "Needs LLM-assisted mapping in the next version."

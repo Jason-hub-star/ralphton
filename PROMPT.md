@@ -11,7 +11,7 @@ memory of previous iterations — state lives only in files and git history.
 3. Run the gates. The deterministic scripts are the judge — never declare PASS
    yourself. Use `.venv/bin/python` if it exists, otherwise `python3`.
    - Offline regression (must stay at baseline: every case PASS,
-     `layer_accuracy=1.0000`):
+     `layer_accuracy=1.0000`, `target_claim_accuracy=1.0000`):
      `python3 scripts/evaluate_review_see_through.py --fixtures fixtures-unseen-3 --run-id loop-regress`
    - Extraction regression (must print `verdict=PASS`):
      `python3 scripts/evaluate_real_review_agent.py --fixtures fixtures-real --run-id loop-real`
@@ -32,8 +32,10 @@ memory of previous iterations — state lives only in files and git history.
 
 - One task per iteration. Do not edit, reorder, or add tasks except marking
   your own task `[x]`.
-- Never edit the judges: `scripts/evaluate_*.py`, `scripts/review_see_through.py`,
-  `fixtures*/labels.json`. Passing gates by weakening them is failure.
+- Never edit the judges: `scripts/evaluate_*.py` and `fixtures*/labels.json`.
+  Passing gates by weakening them is failure. `scripts/review_see_through.py`
+  is the system under test, not a judge: edit it only when your task
+  explicitly targets a metric, and every baseline above must still hold.
 - Never delete or rewrite `runs/archive/`, `runs/index.jsonl`, or git history.
 - LLM path: `generate_see_through_review.py` calls the LLM by default and
   needs `ANTHROPIC_API_KEY` (or `LLM_PROVIDER=openai` + `OPENAI_API_KEY`).

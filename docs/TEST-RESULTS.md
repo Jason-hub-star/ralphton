@@ -3,6 +3,37 @@
 This file is the curated judge-facing summary. Full generated artifacts live in
 `runs/`, and archived internal harness evidence lives in `runs/archive/`.
 
+## Event-Day Rehearsal + Runner Chain (2026-07-11)
+
+Full unattended rehearsal of the event flow on branch `rehearsal-dry-run`:
+paper intake -> gated wrapper review (`scripts/event_review.sh`) -> audit
+archive -> weakest-metric improvement -> docs refresh, driven end to end by a
+sandboxed Codex runner. Result: `[loop] COMPLETE after 6 iteration(s)`;
+`review-event-001` scorecard mode=llm, degraded=False, guard PASS.
+
+Found and fixed by the rehearsal:
+
+- `loop.sh` false COMPLETE: `codex exec` echoes PROMPT.md into stdout, so the
+  unanchored tag grep matched the prompt's own tag documentation at iteration
+  1. Tags now match only on bare `^<promise>` lines.
+- Codex's sandbox blocks `.git` writes; the runner line now passes
+  `sandbox_workspace_write.writable_roots=["$PWD/.git"]` so loop commits work
+  without dropping the sandbox.
+- PROMPT.md contradiction: "improve the weakest metric" was impossible while
+  `review_see_through.py` sat on the never-edit judge list. It is now declared
+  system-under-test (judges: `evaluate_*.py` + labels), and the offline
+  baseline tightened to include `target_claim_accuracy=1.0000`.
+- The rehearsal loop's own 1-line classifier improvement (weak criticisms now
+  target the lexically matched claim) was adopted on main:
+  `target_claim_accuracy` 0.9333 -> 1.0000, all other metrics at baseline.
+
+Same-day hardening for unattended runs: intake preflight (clean error on an
+unmatched glob), loop fail-fast on a missing promise tag, Hangul token support
+in the off-scope filter, `scripts/event_review.sh` (loads credentials, forces
+`LLM_PROVIDER=openai`, hard-gates degraded/verdict/guard), and the
+`runners.conf` fallback chain (two Codex subscriptions -> Claude -> Sonnet ->
+Codex on metered API billing) with rotation and backoff in `loop.sh`.
+
 ## Two-Layer Generator (2026-07-09)
 
 The generator is now LLM brain + deterministic guards:

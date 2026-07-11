@@ -129,13 +129,17 @@ cat runs/review-001/review_scorecard.json
 judged by the deterministic gate scripts, commits on pass, and reports via a
 `<promise>CONTINUE|COMPLETE|BLOCKED</promise>` tag that the loop parses.
 
+For unattended multi-hour runs, `runners.conf` defines a fallback chain
+(two Codex subscriptions → Claude → Sonnet → Codex on metered API billing).
+A runner that crashes or hits its usage window emits no bare promise tag;
+the loop resets tracked files and rotates to the next line, and when the
+whole chain fails it waits `RALPH_RETRY_WAIT` seconds (default 900) and
+retries up to `RALPH_RETRY_MAX` times (default 3). A `BLOCKED` tag still
+stops the loop — a task problem survives runner swaps.
+
 ```bash
-RALPH_RUNNER="claude -p" bash loop.sh --max-iterations 20
-# or, with Codex (network on for the LLM call, .git writable for commits):
-RALPH_RUNNER="codex exec --sandbox workspace-write \
-  -c sandbox_workspace_write.network_access=true \
-  -c 'sandbox_workspace_write.writable_roots=[\"'\"$PWD\"'/.git\"]' -" \
-  bash loop.sh --max-iterations 20
+bash loop.sh --max-iterations 20          # uses the runners.conf chain
+RALPH_RUNNER="claude -p" bash loop.sh --max-iterations 20   # single-runner override
 ```
 
 ## First Test
