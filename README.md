@@ -131,7 +131,11 @@ judged by the deterministic gate scripts, commits on pass, and reports via a
 
 ```bash
 RALPH_RUNNER="claude -p" bash loop.sh --max-iterations 20
-# or: RALPH_RUNNER="codex exec --full-auto -" bash loop.sh
+# or, with Codex (network on for the LLM call, .git writable for commits):
+RALPH_RUNNER="codex exec --sandbox workspace-write \
+  -c sandbox_workspace_write.network_access=true \
+  -c 'sandbox_workspace_write.writable_roots=[\"'\"$PWD\"'/.git\"]' -" \
+  bash loop.sh --max-iterations 20
 ```
 
 ## First Test

@@ -7,7 +7,11 @@
 # RALPH_RUNNER is any command that reads one prompt on stdin and runs a single
 # agent iteration to completion, e.g.:
 #   RALPH_RUNNER="claude -p"                      # Claude Code headless
-#   RALPH_RUNNER="codex exec --full-auto -"       # Codex CLI (- = stdin)
+#   RALPH_RUNNER="codex exec --sandbox workspace-write \
+#     -c sandbox_workspace_write.network_access=true \
+#     -c 'sandbox_workspace_write.writable_roots=[\"'\"\$PWD\"'/.git\"]' -"
+#   (Codex CLI, - = stdin; the sandbox needs network for the LLM call and
+#   .git as a writable root or every iteration BLOCKs on git commit)
 #
 # The loop is fresh-context by design: PROMPT.md is re-read from disk every
 # iteration, and the only carried state is the repository itself.
@@ -29,15 +33,17 @@ for i in $(seq 1 "$MAX_ITER"); do
   echo "[loop] iteration $i/$MAX_ITER (runner: $RUNNER)"
   LOG="$LOG_DIR/iter-$i.log"
   sh -c "$RUNNER" < PROMPT.md 2>&1 | tee "$LOG"
-  if grep -q "<promise>COMPLETE</promise>" "$LOG"; then
+  # Anchored to line start: runners like `codex exec` echo PROMPT.md (which
+  # quotes the tags, indented) back into stdout; only a bare tag line counts.
+  if grep -q "^<promise>COMPLETE</promise>" "$LOG"; then
     echo "[loop] COMPLETE after $i iteration(s). Logs: $LOG_DIR"
     exit 0
   fi
-  if grep -q "<promise>BLOCKED" "$LOG"; then
+  if grep -q "^<promise>BLOCKED" "$LOG"; then
     echo "[loop] BLOCKED at iteration $i — see $LOG"
     exit 1
   fi
-  if ! grep -q "<promise>" "$LOG"; then
+  if ! grep -q "^<promise>" "$LOG"; then
     echo "[loop] no promise tag at iteration $i — runner failed or crashed. See $LOG"
     exit 1
   fi
