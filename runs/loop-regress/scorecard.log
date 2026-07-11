@@ -1,0 +1,1 @@
+[2026-07-11 21:37:04] run=loop-regress cases=5 criticisms=15 layer_accuracy=1.0000 target_claim_accuracy=1.0000 off_scope_catch_rate=1.0000 grounded_preservation_rate=1.0000 next_experiment_precision=1.0000 raw_next_experiment_precision=0.4000 see_through_next_experiment_gain=0.6000

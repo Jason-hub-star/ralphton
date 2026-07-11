@@ -1,0 +1,18 @@
+{
+  "mode": "llm",
+  "degraded": false,
+  "degraded_reason": "",
+  "claim_count": 6,
+  "generated_criticism_count": 0,
+  "filtered_criticism_count": 3,
+  "grounded_criticism_count": 0,
+  "off_scope_filtered_count": 3,
+  "quote_span_count": 0,
+  "quote_span_verified_count": 0,
+  "overall_recommendation": 4,
+  "hallucination_guard_status": "PASS",
+  "verdict": "FAIL",
+  "supported_claim_count": 5,
+  "needs_experiment_claim_count": 1,
+  "weak_claim_count": 0
+}

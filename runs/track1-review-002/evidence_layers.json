@@ -1,0 +1,205 @@
+{
+  "paper": {
+    "path": "track1/paper.md",
+    "title": "Review See-Through: Transparent Evidence Layers for Paper Review Agents"
+  },
+  "mode": "llm",
+  "degraded": false,
+  "claims": [
+    {
+      "id": "C1",
+      "text": "On the archived five-case harness, Review See-Through classified review evidence layers perfectly (1.0 layer accuracy across 15 criticisms).",
+      "evidence_refs": [
+        "E1",
+        "E5"
+      ],
+      "evidence_status": "supported",
+      "rationale": "Both the abstract and the numbered claims state that on the archived five-case harness the layer classifier achieved 1.0 layer accuracy across 15 criticisms, so this performance claim is directly supported by reported results."
+    },
+    {
+      "id": "C2",
+      "text": "On the same archived harness, Review See-Through perfectly selected the target claim and caught all off-scope criticisms (1.0 accuracy and 1.0 off-scope catch rate).",
+      "evidence_refs": [
+        "E1",
+        "E6"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The abstract reports 1.0 target-claim accuracy and 1.0 off-scope catch rate across 15 criticisms, and Claim 2 repeats these numbers, giving direct evidence for perfect target selection and off-scope catching on that harness."
+    },
+    {
+      "id": "C3",
+      "text": "On the archived harness, the see-through next-experiment selector achieved 1.0 precision versus 0.4 for the raw-review baseline, for a 0.6 absolute precision gain.",
+      "evidence_refs": [
+        "E2",
+        "E7"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The abstract explicitly reports 1.0 precision for the see-through selector and 0.4 for the raw-review baseline, with a 0.6 absolute gain, and Claim 3 restates these metrics, so the comparative improvement is directly supported."
+    },
+    {
+      "id": "C4",
+      "text": "On a three-case real extraction evaluation, the system achieved perfect claim-status accuracy and perfect evidence-reference recall and precision.",
+      "evidence_refs": [
+        "E3",
+        "E8"
+      ],
+      "evidence_status": "supported",
+      "rationale": "The abstract notes 1.0 accuracy or recall/precision for claim counts, claim statuses, and evidence references, and Claim 4 specifies 1.0 claim-status accuracy and 1.0 evidence-reference recall and precision, directly supporting this claim for the three-case evaluation."
+    },
+    {
+      "id": "C5",
+      "text": "On the three-case real extraction evaluation, Review See-Through achieved perfect limitation recall and selected-target accuracy, but downstream author revision quality was not measured.",
+      "evidence_refs": [
+        "E3",
+        "E9",
+        "E12"
+      ],
+      "evidence_status": "supported",
+      "rationale": "Claim 5 explicitly states 1.0 limitation recall and 1.0 selected-target accuracy and that downstream author revision quality was not measured; the abstract\u2019s description of the three-case extraction evaluation and the limitations sentence about parser-facing metrics reinforce that only these parser metrics, not revision quality, were evaluated."
+    },
+    {
+      "id": "C6",
+      "text": "The authors hypothesize that Review See-Through will maintain at least 0.9 next-experiment precision on a larger, cross-domain set of at least 20 cases, but this remains untested and requires a dedicated experiment.",
+      "evidence_refs": [
+        "E4",
+        "E10",
+        "E11",
+        "E13"
+      ],
+      "evidence_status": "needs_experiment",
+      "rationale": "Claim 6 is explicitly prospective, stating the system \"will maintain at least 0.9\" precision on a larger cross-domain set and noting it is \"untested\" and \"needs a bounded experiment\"; the abstract and limitations further emphasize that broader domains remain untested and that this cross-domain precision claim should not be treated as established evidence."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "text": "In the archived five-case harness, the layer classifier reached 1.0 layer accuracy, 1.0 target-claim accuracy, and 1.0 off-scope catch rate across 15 criticisms."
+    },
+    {
+      "id": "E2",
+      "text": "The same harness measured 1.0 precision for the see-through next-experiment selector versus 0.4 for the raw review baseline, a 0.6 absolute gain."
+    },
+    {
+      "id": "E3",
+      "text": "A separate three-case extraction evaluation measured 1.0 accuracy or recall/precision for claim counts, claim statuses, evidence references, limitations, and selected targets."
+    },
+    {
+      "id": "E4",
+      "text": "These results support a narrow claim: on the existing labeled harnesses, the see-through decomposition preserves review structure and improves next-experiment selection, while broader paper domains and adversarial reviews remain untested."
+    },
+    {
+      "id": "E5",
+      "text": "1. On the archived five-case harness, Review See-Through classified review evidence layers with 1.0 layer accuracy across 15 criticisms."
+    },
+    {
+      "id": "E6",
+      "text": "2. On the same archived harness, Review See-Through selected the target claim with 1.0 accuracy and caught off-scope criticisms at a 1.0 rate."
+    },
+    {
+      "id": "E7",
+      "text": "3. On the archived harness, the see-through next-experiment selector reached 1.0 precision while the raw-review baseline reached 0.4 precision, giving a 0.6 absolute gain."
+    },
+    {
+      "id": "E8",
+      "text": "4. On the three-case real extraction evaluation, the system achieved 1.0 claim-status accuracy, 1.0 evidence-reference recall, and 1.0 evidence-reference precision."
+    },
+    {
+      "id": "E9",
+      "text": "5. On the three-case real extraction evaluation, Review See-Through measured 1.0 limitation recall and 1.0 selected-target accuracy, but did not measure downstream author revision quality."
+    },
+    {
+      "id": "E10",
+      "text": "6. Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases, which is untested by the current runs and needs a bounded experiment (needs experiment)."
+    },
+    {
+      "id": "E11",
+      "text": "- The strongest next-experiment result comes from a five-case archived harness, so the measured gain may not hold on larger or more diverse paper sets."
+    },
+    {
+      "id": "E12",
+      "text": "- The extraction evaluation covers three cases and reports parser-facing metrics rather than downstream author revision quality."
+    },
+    {
+      "id": "E13",
+      "text": "- The untested cross-domain precision claim is intentionally marked as needing an experiment and should not be treated as established evidence."
+    }
+  ],
+  "limitations": [
+    {
+      "source_id": "E4",
+      "text": "These results support a narrow claim: on the existing labeled harnesses, the see-through decomposition preserves review structure and improves next-experiment selection, while broader paper domains and adversarial reviews remain untested."
+    },
+    {
+      "source_id": "E9",
+      "text": "5. On the three-case real extraction evaluation, Review See-Through measured 1.0 limitation recall and 1.0 selected-target accuracy, but did not measure downstream author revision quality."
+    },
+    {
+      "source_id": "E11",
+      "text": "- The strongest next-experiment result comes from a five-case archived harness, so the measured gain may not hold on larger or more diverse paper sets."
+    },
+    {
+      "source_id": "E12",
+      "text": "- The extraction evaluation covers three cases and reports parser-facing metrics rather than downstream author revision quality."
+    },
+    {
+      "source_id": "E13",
+      "text": "- The untested cross-domain precision claim is intentionally marked as needing an experiment and should not be treated as established evidence."
+    }
+  ],
+  "generated_criticisms": [],
+  "filtered_criticisms": [
+    {
+      "id": "G1",
+      "target_claim": "C3",
+      "layer": "off_scope",
+      "text": "The strong next-experiment precision result (1.0 vs 0.4, 0.6 absolute gain) is based on a very small archived harness of only five cases, which limits confidence that this improvement will generalize to more diverse review scenarios or paper domains.",
+      "evidence_refs": [
+        "E2",
+        "E11"
+      ],
+      "quote": "The strongest next-experiment result comes from a five-case archived harness, so the measured gain may not hold on larger or more diverse paper sets.",
+      "hidden_assumption": "Performance measured on five archived cases is sufficiently representative of real-world variation in papers and reviews to support strong conclusions about next-experiment gains.",
+      "filter_reason": "off_scope: This criticism mainly reiterates a limitation the authors already state verbatim: \"The strongest next-experiment result comes from a five-case archived harness, so the measured gain may not hold on larger or more diverse paper sets.\" It does not add a specific new check, failure mode, or analysis beyond expressing reduced confidence, so it should be dropped as redundant with the acknowledged limitation."
+    },
+    {
+      "id": "G2",
+      "target_claim": "C5",
+      "layer": "off_scope",
+      "text": "Although the three-case extraction evaluation reports perfect metrics for limitations and selected targets, the study does not connect these parser-facing scores to actual improvements in how authors revise their papers, so the practical impact of these results remains unclear.",
+      "evidence_refs": [
+        "E3",
+        "E9",
+        "E12"
+      ],
+      "quote": "The extraction evaluation covers three cases and reports parser-facing metrics rather than downstream author revision quality.",
+      "hidden_assumption": "High parser-facing metrics on three cases will translate directly into meaningful improvements in downstream author revision quality.",
+      "filter_reason": "off_scope: The paper explicitly acknowledges: \"The extraction evaluation covers three cases and reports parser-facing metrics rather than downstream author revision quality.\" The criticism restates that the practical impact on author revisions is unclear, but does not propose a concrete additional check or analysis. Since it is anchored in an already stated limitation without adding new evaluative content, it should be dropped."
+    },
+    {
+      "id": "G3",
+      "target_claim": "C6",
+      "layer": "off_scope",
+      "text": "The forward-looking claim that Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain set is explicitly untested, so it should be clearly separated from validated findings and supported by a concrete experimental plan before being treated as a substantive contribution.",
+      "evidence_refs": [
+        "E4",
+        "E10",
+        "E13"
+      ],
+      "quote": "Review See-Through will maintain at least 0.9 next-experiment precision on a larger cross-domain paper set of at least 20 cases, which is untested by the current runs and needs a bounded experiment (needs experiment).",
+      "hidden_assumption": "Performance observed on the current narrow harnesses will scale to at least 0.9 precision on a substantially larger and more diverse cross-domain paper set without degradation.",
+      "filter_reason": "off_scope: The paper already flags this as a forward-looking, untested claim and cautions: \"The untested cross-domain precision claim is intentionally marked as needing an experiment and should not be treated as established evidence.\" The criticism\u2019s request to separate it from validated findings is thus already satisfied, and while it asks for a concrete experimental plan, that moves toward new work rather than checking the current paper. Overall it mostly restates acknowledged scope/untested status, so it should be dropped."
+    }
+  ],
+  "selected_next_experiment": {
+    "id": "NEXT-1",
+    "from_criticism": "G3",
+    "target_claim": "C6",
+    "hypothesis": "A bounded experiment can resolve whether the paper's evidence supports C6: The authors hypothesize that Review See-Through will maintain at least 0.9 next-experiment precision on a larger, cross-domain set of at least 20 cases, but this remains untested and requires a dedicated experiment.",
+    "baseline": "Use the closest reported evidence sentence as the baseline before running the missing check.",
+    "metric": "claim-specific pass rate",
+    "keep_condition": "claim-specific pass rate passes on a held-out fixture and the evidence can be reproduced from saved artifacts.",
+    "discard_condition": "claim-specific pass rate fails on the held-out fixture or requires evidence not present in the paper artifacts.",
+    "verify": "Run the smallest saved fixture that directly targets C6 and attach the run artifact."
+  },
+  "generated_at": "2026-07-11T21:33:29"
+}

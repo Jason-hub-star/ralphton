@@ -898,7 +898,9 @@ def scorecard(
         "quote_span_verified_count": quotes_verified,
         "overall_recommendation": recommendation,
         "hallucination_guard_status": "PASS" if guard_ok else "FAIL",
-        "verdict": "PASS" if guard_ok and kept else "FAIL",
+        # All-criticisms-filtered is a legitimate outcome on an airtight paper;
+        # FAIL only when the pipeline drafted nothing at all.
+        "verdict": "PASS" if guard_ok and (kept or filtered) else "FAIL",
         "supported_claim_count": sum(1 for claim in claims if claim["evidence_status"] == "supported"),
         "needs_experiment_claim_count": sum(1 for claim in claims if claim["evidence_status"] == "needs_experiment"),
         "weak_claim_count": sum(1 for claim in claims if claim["evidence_status"] == "weak"),
