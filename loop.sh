@@ -27,6 +27,15 @@
 #     and retry, up to RALPH_RETRY_MAX (default 3) attempts per iteration —
 #     subscription windows reopen over time.
 #
+# Engine guards (deterministic, env-tunable):
+#   - A runner still running after RALPH_RUNNER_TIMEOUT seconds (default
+#     3600) is killed with its process group and treated as tagless (rotate).
+#   - RALPH_STALL_MAX (default 2) consecutive CONTINUE iterations without a
+#     new commit stop the loop — a stuck task must not burn the chain.
+#   - Any change to judges/contracts/loop files (PROTECTED_RE below) since
+#     iteration start stops the loop: the never-edit rules are enforced by
+#     the engine, not only promised in the prompt contract.
+#
 # The loop is fresh-context by design: PROMPT.md is re-read from disk every
 # iteration, and the only carried state is the repository itself.
 set -u
@@ -34,6 +43,9 @@ set -u
 MAX_ITER=20
 RETRY_MAX=${RALPH_RETRY_MAX:-3}
 RETRY_WAIT=${RALPH_RETRY_WAIT:-900}
+RUNNER_TIMEOUT=${RALPH_RUNNER_TIMEOUT:-3600}
+STALL_MAX=${RALPH_STALL_MAX:-2}
+PROTECTED_RE='^(loop\.sh|start\.sh|runners\.conf|PROMPT\.md|track1/PROMPT\.md|scripts/evaluate_|scripts/event_review\.sh|scripts/track1_selfreview\.sh|runs/archive/|runs/index\.jsonl|fixtures[^/]*/labels\.json)'
 PROMPT_FILE=${RALPH_PROMPT:-PROMPT.md}
 if [ ! -f "$PROMPT_FILE" ]; then
   echo "prompt file not found: $PROMPT_FILE" >&2
@@ -45,6 +57,25 @@ while [ $# -gt 0 ]; do
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
+
+# timeout(1) polyfill (macOS ships none): run "$@" in its own process group,
+# kill the whole group after $RUNNER_TIMEOUT seconds. A killed runner emits
+# no promise tag, so the normal rotation semantics take over.
+run_runner() {
+  perl -e '
+    my $t = shift @ARGV;
+    my $pid = fork() // die "fork: $!";
+    if (!$pid) { setpgrp(0, 0); exec @ARGV or die "exec: $!"; }
+    $SIG{INT} = $SIG{TERM} = sub { kill "TERM", -$pid; exit 130 };
+    $SIG{ALRM} = sub {
+      print STDERR "[loop] runner timed out after ${t}s\n";
+      kill "TERM", -$pid; sleep 2; kill "KILL", -$pid;
+    };
+    alarm $t;
+    my $r; do { $r = waitpid($pid, 0) } while ($r == -1 && $!{EINTR});
+    exit 0;
+  ' "$RUNNER_TIMEOUT" "$@"
+}
 
 LOG_DIR="runs/loop/$(date +%Y%m%dT%H%M%S)-$$"
 mkdir -p "$LOG_DIR"
@@ -62,7 +93,9 @@ echo "[loop] contract: $PROMPT_FILE"
 echo "[loop] runner chain ($(grep -c '' "$ACTIVE")):"
 sed 's/^/[loop]   /' "$ACTIVE"
 
+STALL=0
 for i in $(seq 1 "$MAX_ITER"); do
+  HEAD_BEFORE=$(git rev-parse HEAD)
   attempt=1
   TAG_LOG=""
   while [ -z "$TAG_LOG" ]; do
@@ -71,7 +104,7 @@ for i in $(seq 1 "$MAX_ITER"); do
       r=$((r+1))
       LOG="$LOG_DIR/iter-$i-a$attempt-r$r.log"
       echo "[loop] iteration $i/$MAX_ITER attempt $attempt runner $r: $RUNNER"
-      sh -c "$RUNNER" < "$PROMPT_FILE" 2>&1 | tee "$LOG"
+      run_runner sh -c "$RUNNER" < "$PROMPT_FILE" 2>&1 | tee "$LOG"
       # Anchored to line start: runners like `codex exec` echo PROMPT.md
       # (which quotes the tags, indented) back into stdout; only a bare tag
       # line counts.
@@ -91,6 +124,13 @@ for i in $(seq 1 "$MAX_ITER"); do
     echo "[loop] chain exhausted — waiting ${RETRY_WAIT}s for usage windows (attempt $attempt/$RETRY_MAX)"
     sleep "$RETRY_WAIT"
   done
+  TAMPERED=$(git diff --name-only "$HEAD_BEFORE" | grep -E "$PROTECTED_RE")
+  if [ -n "$TAMPERED" ]; then
+    echo "[loop] protected files changed at iteration $i — stopping:"
+    echo "$TAMPERED" | sed 's/^/[loop]   /'
+    echo "[loop] inspect with: git diff $HEAD_BEFORE"
+    exit 1
+  fi
   if grep -q "^<promise>COMPLETE</promise>" "$TAG_LOG"; then
     echo "[loop] COMPLETE after $i iteration(s). Logs: $LOG_DIR"
     exit 0
@@ -98,6 +138,16 @@ for i in $(seq 1 "$MAX_ITER"); do
   if grep -q "^<promise>BLOCKED" "$TAG_LOG"; then
     echo "[loop] BLOCKED at iteration $i — see $TAG_LOG"
     exit 1
+  fi
+  if [ "$(git rev-parse HEAD)" = "$HEAD_BEFORE" ]; then
+    STALL=$((STALL + 1))
+    if [ "$STALL" -ge "$STALL_MAX" ]; then
+      echo "[loop] $STALL consecutive CONTINUE iteration(s) without a commit — stalled, stopping. Logs: $LOG_DIR"
+      exit 1
+    fi
+    echo "[loop] iteration $i ended CONTINUE with no commit (stall $STALL/$STALL_MAX)"
+  else
+    STALL=0
   fi
 done
 

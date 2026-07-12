@@ -137,6 +137,14 @@ whole chain fails it waits `RALPH_RETRY_WAIT` seconds (default 900) and
 retries up to `RALPH_RETRY_MAX` times (default 3). A `BLOCKED` tag still
 stops the loop — a task problem survives runner swaps.
 
+Three engine guards run outside the model: a runner still running after
+`RALPH_RUNNER_TIMEOUT` seconds (default 3600) is killed with its process
+group and handled like a crashed runner; `RALPH_STALL_MAX` (default 2)
+consecutive CONTINUE iterations without a new commit stop the loop; and any
+change to the judges, loop contracts, `loop.sh`, or the run archive since
+iteration start stops the loop immediately — the never-edit rules are
+enforced by the engine, not only promised in the prompt contract.
+
 ```bash
 bash start.sh track2          # event launcher: preflight checks + caffeinate + chain
 caffeinate -is bash loop.sh --max-iterations 20   # chain from runners.conf; caffeinate blocks macOS sleep

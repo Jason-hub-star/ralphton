@@ -75,6 +75,29 @@ next-experiment seed in `track1/NEXT.md`) completed end to end, and every
 number in `track1/paper.md` is verified against archived ground truth
 (12/12 evidence rows).
 
+## Loop Engine Guards (2026-07-12)
+
+Post-rehearsal hardening of `loop.sh` — three deterministic guards that run
+outside the model:
+
+- Protected-path check: any change to the judges, loop contracts, `loop.sh`,
+  `start.sh`, `runners.conf`, fixture labels, `runs/archive/`, or
+  `runs/index.jsonl` between iteration start and the promise tag stops the
+  loop. The never-edit rules are now enforced by the engine, not only
+  promised in the prompt contract.
+- Runner timeout: a runner still running after `RALPH_RUNNER_TIMEOUT`
+  seconds (default 3600) is killed with its whole process group and then
+  handled by the existing tagless-rotation path — no new failure state.
+- Stall stop: `RALPH_STALL_MAX` (default 2) consecutive CONTINUE iterations
+  without a new commit stop the loop instead of burning the chain.
+
+Stub-runner guard rig, 12/12 PASS: committed and uncommitted judge edits
+both stopped the loop; a legitimate 3-commit run completed with no false
+positive; simple and compound hung runners were killed in ~5s with no orphan
+output (process-group kill); the stall guard stopped at iteration 2;
+rotation, BLOCKED handling, and `RALPH_PROMPT` contract switching are
+unchanged. Real-repo smoke after merge: stub COMPLETE run exits 0.
+
 ## Two-Layer Generator (2026-07-09)
 
 The generator is now LLM brain + deterministic guards:
